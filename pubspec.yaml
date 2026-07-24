@@ -1,7 +1,7 @@
 name: cloudflare_dns
 description: "Aplicativo Flutter multiplataforma para gerenciamento de registros DNS via Cloudflare API."
 publish_to: 'none'
-version: 2.0.2+16
+version: 2.0.3+17
 
 environment:
   sdk: '>=3.3.0 <4.0.0'

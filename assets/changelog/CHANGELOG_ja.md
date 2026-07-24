@@ -4,7 +4,7 @@ GitHub のプロジェクト: [https://github.com/Tacioandrade/cloudflare-update
 
 このプロジェクトの主な変更はすべてこのファイルに記録されます。
 
-## [Unreleased]
+## [2.0.3] - 2026-07-24
 ### 追加 / 変更
 - iOS と macOS のネイティブサポートおよびビルド手順を追加。
 - リリースコミット向けの macOS バンドル自動ビルドを GitHub Actions に追加。

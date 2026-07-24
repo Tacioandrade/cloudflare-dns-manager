@@ -4,7 +4,7 @@ Projet sur GitHub : [https://github.com/Tacioandrade/cloudflare-update-dns/](htt
 
 Toutes les modifications notables de ce projet seront documentées dans ce fichier.
 
-## [Unreleased]
+## [2.0.3] - 2026-07-24
 ### Ajouté / Modifié
 - Ajout du support natif et de la documentation de compilation pour iOS et macOS.
 - Ajout de la compilation automatique du bundle macOS dans GitHub Actions pour les commits de version.
