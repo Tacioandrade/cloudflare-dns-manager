@@ -458,12 +458,58 @@ jobs:
             dist/cloudflare-dns-manager-windows-${{ needs.detect-version.outputs.version }}.exe
           if-no-files-found: error
 
+  build-macos:
+    name: Build macOS bundle
+    needs: detect-version
+    if: needs.detect-version.outputs.should_release == 'true'
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Build macOS
+        run: |
+          flutter doctor -v
+          flutter config --enable-macos-desktop
+          flutter pub get
+          flutter build macos --release
+
+      - name: Validate and package macOS bundle
+        env:
+          VERSION: ${{ needs.detect-version.outputs.version }}
+        run: |
+          app_path="$(find build/macos/Build/Products/Release -maxdepth 1 -type d -name '*.app' -print -quit)"
+          if [ -z "$app_path" ]; then
+            echo "O bundle .app do macOS não foi encontrado." >&2
+            exit 1
+          fi
+
+          codesign --verify --deep --strict "$app_path"
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$app_path" \
+            "dist/cloudflare-dns-manager-macos-$VERSION.zip"
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-bundle
+          path: dist/cloudflare-dns-manager-macos-${{ needs.detect-version.outputs.version }}.zip
+          if-no-files-found: error
+
   release:
     name: Publish GitHub release
     needs:
       - detect-version
       - build-linux
       - build-windows
+      - build-macos
     if: needs.detect-version.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:

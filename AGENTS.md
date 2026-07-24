@@ -26,11 +26,13 @@
 
 ## Plataformas
 
-- Plataformas com suporte/documentacao no projeto: Android, Linux e Windows.
-- Existem pastas Flutter tambem para iOS, macOS e Web; trate alteracoes nelas com cuidado e teste quando forem afetadas.
+- Plataformas com suporte/documentacao no projeto: Android, iOS, Linux, macOS e Windows.
+- Existe uma pasta Flutter tambem para Web; trate alteracoes nela com cuidado e teste quando for afetada.
 - Leia os guias especificos antes de mudar comandos, nomes ou empacotamento:
   - `README-Android.md`
+  - `README-iOS.md`
   - `README-Linux.md`
+  - `README-macOS.md`
   - `README-Windows.md`
 
 ## Comandos Uteis
@@ -38,7 +40,9 @@
 - Validacao estatica: `flutter analyze`
 - Testes: `flutter test`
 - Build Android: consulte `README-Android.md`
+- Build iOS: consulte `README-iOS.md`
 - Build Linux: consulte `README-Linux.md`
+- Build macOS: consulte `README-macOS.md`
 - Build Windows: consulte `README-Windows.md`
 
 ## Cuidados de Manutencao

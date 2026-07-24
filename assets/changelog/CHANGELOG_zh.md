@@ -4,6 +4,12 @@ GitHub 上的项目：[https://github.com/Tacioandrade/cloudflare-update-dns/](h
 
 本项目的所有重要变更都将记录在此文件中。
 
+## [Unreleased]
+### 新增 / 更改
+- 添加 iOS 和 macOS 原生支持及构建文档。
+- 在 GitHub Actions 中为发布提交添加 macOS 应用包自动构建。
+- 调整网络与 Keychain 权限、公开元数据和 Xcode 产品引用。
+
 ## [2.0.2] - 2026-07-20
 ### 新增
 - 新增在 Linux 和 Windows 上启动应用时通过 GitHub Releases 每日检查新版本的功能，并可在“设置”中将其关闭。
