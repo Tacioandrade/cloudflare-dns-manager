@@ -1,5 +1,6 @@
 import 'package:cloudflare_dns/data/local_storage.dart';
 import 'package:cloudflare_dns/data/update_checker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -19,6 +20,27 @@ void main() {
     expect(UpdateChecker.isNewerVersion('2.0.1', '2.0.1'), isFalse);
     expect(UpdateChecker.isNewerVersion('2.0.0', '2.0.1'), isFalse);
     expect(UpdateChecker.isNewerVersion('invalid', '2.0.1'), isFalse);
+  });
+
+  test('supports update checks on Linux, macOS, and Windows only', () {
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    for (final platform in [
+      TargetPlatform.linux,
+      TargetPlatform.macOS,
+      TargetPlatform.windows,
+    ]) {
+      debugDefaultTargetPlatformOverride = platform;
+      expect(UpdateChecker.supportsCurrentPlatform, isTrue);
+    }
+
+    for (final platform in [
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    ]) {
+      debugDefaultTargetPlatformOverride = platform;
+      expect(UpdateChecker.supportsCurrentPlatform, isFalse);
+    }
   });
 
   test('checks GitHub only once per local calendar day', () async {

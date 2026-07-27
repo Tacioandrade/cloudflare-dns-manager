@@ -4,6 +4,11 @@ Proyecto en GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](htt
 
 Todos los cambios destacables de este proyecto se documentarán en este archivo.
 
+## [2.0.4] - 2026-07-27
+### Añadido / Modificado
+- Añadida en macOS la comprobación diaria de nuevas versiones al abrir la aplicación, manteniendo esta función desactivada en iOS.
+- Corregido el nombre mostrado de la aplicación en Android y en los metadatos Web a Cloudflare DNS Manager.
+
 ## [2.0.3] - 2026-07-24
 ### Añadido / Modificado
 - Añadido soporte nativo y documentación de compilación para iOS y macOS.

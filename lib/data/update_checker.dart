@@ -26,6 +26,7 @@ class UpdateChecker {
   static bool get supportsCurrentPlatform =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.linux ||
+          defaultTargetPlatform == TargetPlatform.macOS ||
           defaultTargetPlatform == TargetPlatform.windows);
 
   static Future<AvailableUpdate?> checkAtStartup({

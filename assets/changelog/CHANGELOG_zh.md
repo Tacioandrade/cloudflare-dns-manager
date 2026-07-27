@@ -4,6 +4,11 @@ GitHub 上的项目：[https://github.com/Tacioandrade/cloudflare-update-dns/](h
 
 本项目的所有重要变更都将记录在此文件中。
 
+## [2.0.4] - 2026-07-27
+### 新增 / 更改
+- 在 macOS 上新增应用启动时的每日版本检查，同时保持 iOS 不启用此功能。
+- 将 Android 和 Web 元数据中显示的应用名称更正为 Cloudflare DNS Manager。
+
 ## [2.0.3] - 2026-07-24
 ### 新增 / 更改
 - 添加 iOS 和 macOS 原生支持及构建文档。

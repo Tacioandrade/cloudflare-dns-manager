@@ -1,11 +1,11 @@
 {
-    "name": "cloudflare_dns",
-    "short_name": "cloudflare_dns",
+    "name": "Cloudflare DNS Manager",
+    "short_name": "Cloudflare DNS Manager",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Gerenciamento de registros DNS via Cloudflare API.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

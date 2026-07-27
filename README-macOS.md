@@ -28,5 +28,6 @@ cuja mensagem começa com `Versão X.Y.Z`.
 - Bundle ID: `br.com.multiti.cloudflare_dns`.
 - O sandbox inclui acesso de rede de saída para a API Cloudflare.
 - O acesso ao Keychain está habilitado para armazenar o token e a senha com segurança.
+- Ao abrir o aplicativo, a verificação diária de novas versões é executada e pode ser desativada nas Configurações.
 - O artefato automático usa assinatura ad-hoc; distribuição pública exige assinatura Developer ID e notarização.
 - Para publicar fora do ambiente local, configure a equipe Apple, certificado e notarização no Xcode.
