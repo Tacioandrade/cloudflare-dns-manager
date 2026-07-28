@@ -8,6 +8,9 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 ### Adicionado / Alterado
 - Adicionada ao macOS a verificação diária de novas versões ao abrir o aplicativo, mantendo iOS sem essa funcionalidade.
 - Corrigido o nome exibido do aplicativo no Android e nos metadados Web para Cloudflare DNS Manager.
+- Adicionada uma opção Docker para gerar o Android App Bundle (AAB) destinado à publicação na Google Play Store.
+- Atualizada a ferramenta de build Android para Flutter 3.38.10, com Android Gradle Plugin 8.11.1 e Gradle 8.14.
+- Atualizados os níveis de API Android para mínimo 24 e desejado 36, conforme exigido pela Google Play Store.
 
 ## [2.0.3] - 2026-07-24
 ### Adicionado / Alterado

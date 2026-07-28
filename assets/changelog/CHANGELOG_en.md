@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 ### Added / Changed
 - Added daily update checks when opening the app on macOS, while keeping this feature disabled on iOS.
 - Corrected the displayed application name on Android and in Web metadata to Cloudflare DNS Manager.
+- Added a Docker option to generate the Android App Bundle (AAB) for publishing on the Google Play Store.
+- Updated the Android build toolchain to Flutter 3.38.10, Android Gradle Plugin 8.11.1, and Gradle 8.14.
+- Updated the Android API levels to minimum 24 and target 36, as required by the Google Play Store.
 
 ## [2.0.3] - 2026-07-24
 ### Added / Changed

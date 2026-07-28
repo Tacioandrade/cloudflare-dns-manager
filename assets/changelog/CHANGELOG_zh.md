@@ -8,6 +8,9 @@ GitHub 上的项目：[https://github.com/Tacioandrade/cloudflare-update-dns/](h
 ### 新增 / 更改
 - 在 macOS 上新增应用启动时的每日版本检查，同时保持 iOS 不启用此功能。
 - 将 Android 和 Web 元数据中显示的应用名称更正为 Cloudflare DNS Manager。
+- 添加用于生成 Android App Bundle（AAB）并发布到 Google Play 商店的 Docker 选项。
+- 将 Android 构建工具链更新为 Flutter 3.38.10、Android Gradle Plugin 8.11.1 和 Gradle 8.14。
+- 按照 Google Play 商店的要求，将 Android API 最低级别更新为 24，目标级别更新为 36。
 
 ## [2.0.3] - 2026-07-24
 ### 新增 / 更改

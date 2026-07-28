@@ -16,24 +16,20 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "br.com.multiti.cloudflare_update_dns"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "25.1.8937393"
+    compileSdk = 36
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
     defaultConfig {
         applicationId = "br.com.multiti.cloudflare_update_dns"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode()
-        versionName = flutter.versionName()
+        minSdk = 24
+        targetSdk = 36
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     signingConfigs {
@@ -53,6 +49,12 @@ android {
                 throw GradleException("Missing android/key.properties. Release APKs must be signed with the persistent release keystore.")
             }
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 

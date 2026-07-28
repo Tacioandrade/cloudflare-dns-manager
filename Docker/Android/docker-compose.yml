@@ -25,3 +25,11 @@ services:
     volumes:
       - ../..:/app
     command: bash -c "flutter pub get && flutter build apk --release && chown -R 1000:1000 build/"
+
+  build-aab:
+    build:
+      context: ../..
+      dockerfile: Docker/Android/Dockerfile
+    volumes:
+      - ../..:/app
+    command: bash -c "flutter pub get && flutter build appbundle --release && chown -R 1000:1000 build/"

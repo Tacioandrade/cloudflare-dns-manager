@@ -8,6 +8,9 @@ GitHub のプロジェクト: [https://github.com/Tacioandrade/cloudflare-update
 ### 追加 / 変更
 - macOS でアプリ起動時の新バージョン確認を1日1回実行する機能を追加し、iOS では引き続き無効としました。
 - Android および Web メタデータに表示されるアプリ名を Cloudflare DNS Manager に修正しました。
+- Google Play ストアへの公開用 Android App Bundle（AAB）を生成する Docker オプションを追加しました。
+- Android ビルドツールチェーンを Flutter 3.38.10、Android Gradle Plugin 8.11.1、Gradle 8.14 に更新しました。
+- Google Play ストアの要件に従い、Android API レベルを最小 24、ターゲット 36 に更新しました。
 
 ## [2.0.3] - 2026-07-24
 ### 追加 / 変更

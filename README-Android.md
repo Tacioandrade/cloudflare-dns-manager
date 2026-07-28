@@ -1,6 +1,6 @@
 # Cloudflare DNS Manager - Android
 
-Guia especifico para testar e gerar o APK Android. Para funcionalidades comuns, configuracao do token e arquitetura geral, consulte o [README principal](README.md).
+Guia especifico para testar e gerar os artefatos Android. Para funcionalidades comuns, configuracao do token e arquitetura geral, consulte o [README principal](README.md).
 
 No Android, o app suporta login por senha e biometria quando o dispositivo e o sistema operacional oferecem suporte.
 
@@ -36,16 +36,33 @@ O APK release sera gerado em:
 build/app/outputs/flutter-apk/
 ```
 
-## Assinatura do APK
+### Build do Android App Bundle (AAB)
 
-O build Android release exige `android/key.properties` com as credenciais da keystore persistente. Sem esse arquivo, o Gradle interrompe o build release.
+Para gerar o pacote destinado a publicacao na Google Play Store:
+
+```bash
+docker compose -f Docker/Android/docker-compose.yml run --rm build-aab
+```
+
+O AAB release sera gerado em:
+
+```text
+build/app/outputs/bundle/release/app-release.aab
+```
+
+## Assinatura dos artefatos Android
+
+Os builds Android release exigem `android/key.properties` com as credenciais da keystore persistente. Sem esse arquivo, o Gradle interrompe o build release.
 
 Arquivos de keystore e `android/key.properties` devem permanecer fora do Git.
 
 ## Detalhes da Plataforma
 
 - Plataforma alvo: Android.
-- Artefato gerado: APK.
+- Versao minima: Android 7.0 (API 24).
+- Nivel desejado da API: Android 16 (API 36).
+- Flutter usado no build Android: 3.38.10.
+- Artefatos gerados: APK e Android App Bundle (AAB).
 - Docker dedicado: `Docker/Android/Dockerfile`.
 - Compose dedicado: `Docker/Android/docker-compose.yml`.
 - Pacote: `br.com.multiti.cloudflare_update_dns`.
