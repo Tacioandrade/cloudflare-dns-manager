@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:local_auth/local_auth.dart';
 import '../core/app_theme.dart';
 import '../core/app_language.dart';
 import '../core/constants.dart';
@@ -10,7 +12,14 @@ import 'changelog_screen.dart';
 import '../l10n/app_localizations.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({
+    super.key,
+    this.passwordVerifier,
+    this.systemAuthenticator,
+  });
+
+  final Future<bool> Function(String password)? passwordVerifier;
+  final Future<bool> Function(BuildContext context)? systemAuthenticator;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -26,6 +35,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _obscureCurrentPass = true;
   bool _obscureNewPass = true;
   bool _obscureConfirmPass = true;
+  bool _tokenAuthenticationInProgress = false;
+
+  final LocalAuthentication _localAuthentication = LocalAuthentication();
 
   String _themeMode = AppThemeController.systemValue;
   String _language = AppLanguageController.systemValue;
@@ -92,7 +104,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await LocalStorage.saveToken(_tokenController.text.trim());
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.text('tokenSaved')), backgroundColor: AppColors.success),
+        SnackBar(
+            content: Text(context.l10n.text('tokenSaved')),
+            backgroundColor: AppColors.success),
       );
     }
   }
@@ -117,6 +131,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     }
+  }
+
+  bool get _supportsSystemAuthentication {
+    if (kIsWeb) return false;
+    return defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.windows;
+  }
+
+  Future<void> _toggleTokenVisibility() async {
+    if (!_obscureToken) {
+      setState(() => _obscureToken = true);
+      return;
+    }
+    if (_tokenAuthenticationInProgress) return;
+
+    _tokenAuthenticationInProgress = true;
+    var authenticated = false;
+    try {
+      if (widget.systemAuthenticator != null) {
+        authenticated = await widget.systemAuthenticator!(context);
+      } else if (_supportsSystemAuthentication) {
+        try {
+          final isAvailable = await _localAuthentication.canCheckBiometrics ||
+              await _localAuthentication.isDeviceSupported();
+          if (isAvailable && mounted) {
+            authenticated = await _localAuthentication.authenticate(
+              localizedReason: context.l10n.text('tokenRevealBiometricReason'),
+              options: const AuthenticationOptions(
+                stickyAuth: true,
+                biometricOnly: false,
+              ),
+            );
+          }
+        } catch (e) {
+          debugPrint('Erro ao autenticar para exibir o token: $e');
+        }
+      }
+
+      if (!authenticated && mounted) {
+        authenticated = await _authenticateTokenWithPassword();
+      }
+
+      if (authenticated && mounted) {
+        setState(() => _obscureToken = false);
+      }
+    } finally {
+      _tokenAuthenticationInProgress = false;
+    }
+  }
+
+  Future<bool> _authenticateTokenWithPassword() async {
+    final authenticated = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _TokenPasswordAuthenticationDialog(
+        passwordVerifier:
+            widget.passwordVerifier ?? LocalStorage.verifyAppPassword,
+      ),
+    );
+
+    return authenticated ?? false;
   }
 
   Future<void> _changePassword() async {
@@ -169,6 +245,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   @override
+  void dispose() {
+    _tokenController.dispose();
+    _currentPassController.dispose();
+    _newPassController.dispose();
+    _confirmPassController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CallbackShortcuts(
       bindings: {
@@ -179,277 +264,384 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: FocusScope(
         autofocus: true,
         child: Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.text('settings')),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(context.l10n.text('apiToken'),
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _tokenController,
-              obscureText: _obscureToken,
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                      _obscureToken ? Icons.visibility : Icons.visibility_off),
-                  onPressed: () {
-                    setState(() {
-                      _obscureToken = !_obscureToken;
-                    });
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
+          appBar: AppBar(
+            title: Text(context.l10n.text('settings')),
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _testToken,
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[700]),
-                    child: Text(context.l10n.text('test'),
-                        style: TextStyle(color: Colors.white)),
+                Text(context.l10n.text('apiToken'),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _tokenController,
+                  obscureText: _obscureToken,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      key: const ValueKey('tokenVisibilityButton'),
+                      icon: Icon(_obscureToken
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: _toggleTokenVisibility,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _testToken,
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[700]),
+                        child: Text(context.l10n.text('test'),
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _saveToken,
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary),
+                        child: Text(context.l10n.text('save'),
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 16),
+                Text(context.l10n.text('appTheme'),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text(context.l10n.text('themeDescription'),
+                    style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _themeMode,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.palette),
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: AppThemeController.systemValue,
+                      child: Text(context.l10n.text('systemTheme')),
+                    ),
+                    DropdownMenuItem(
+                      value: AppThemeController.lightValue,
+                      child: Text(context.l10n.text('light')),
+                    ),
+                    DropdownMenuItem(
+                      value: AppThemeController.darkValue,
+                      child: Text(context.l10n.text('dark')),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      _saveThemeMode(value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 16),
+                Text(context.l10n.text('language'),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text(context.l10n.text('languageDescription'),
+                    style: const TextStyle(color: Colors.grey)),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _language,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.language),
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                        value: AppLanguageController.systemValue,
+                        child: Text(context.l10n.text('systemLanguage'))),
+                    const DropdownMenuItem(
+                        value: 'pt', child: Text('Português')),
+                    const DropdownMenuItem(value: 'en', child: Text('English')),
+                    const DropdownMenuItem(
+                        value: 'fr', child: Text('Français')),
+                    const DropdownMenuItem(value: 'es', child: Text('Español')),
+                    const DropdownMenuItem(value: 'zh', child: Text('简体中文')),
+                    const DropdownMenuItem(value: 'ja', child: Text('日本語')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) _saveLanguage(value);
+                  },
+                ),
+                if (UpdateChecker.supportsCurrentPlatform) ...[
+                  const SizedBox(height: 32),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  Text(context.l10n.text('updates'),
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: const Icon(Icons.system_update),
+                    title: Text(context.l10n.text('checkForUpdates')),
+                    subtitle:
+                        Text(context.l10n.text('checkForUpdatesDescription')),
+                    value: _updateCheckEnabled,
+                    activeColor: AppColors.primary,
+                    onChanged: _saveUpdateCheckEnabled,
+                  ),
+                ],
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 16),
+                Text(context.l10n.text('dnsTypes'),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text(context.l10n.text('dnsTypesDescription'),
+                    style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 8.0,
+                  children: _availableTypes.map((type) {
+                    return FilterChip(
+                      label: Text(type),
+                      selected: _dnsTypes.contains(type),
+                      selectedColor: AppColors.primary.withOpacity(0.3),
+                      checkmarkColor: AppColors.primary,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _dnsTypes.add(type);
+                          } else {
+                            if (_dnsTypes.length > 1) {
+                              _dnsTypes.remove(type);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        context.l10n.text('atLeastOneType'))),
+                              );
+                            }
+                          }
+                        });
+                        LocalStorage.saveDnsTypes(_dnsTypes);
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 16),
+                Text(context.l10n.text('changePassword'),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _currentPassController,
+                  obscureText: _obscureCurrentPass,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.text('currentPassword'),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscureCurrentPass
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: () {
+                        setState(() {
+                          _obscureCurrentPass = !_obscureCurrentPass;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _newPassController,
+                  obscureText: _obscureNewPass,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.text('newPassword'),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscureNewPass
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: () {
+                        setState(() {
+                          _obscureNewPass = !_obscureNewPass;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _confirmPassController,
+                  obscureText: _obscureConfirmPass,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.text('confirmNewPassword'),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscureConfirmPass
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPass = !_obscureConfirmPass;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
                   child: ElevatedButton(
-                    onPressed: _saveToken,
+                    onPressed: _changePassword,
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary),
-                    child: Text(context.l10n.text('save'),
+                    child: Text(context.l10n.text('updatePassword'),
                         style: TextStyle(color: Colors.white)),
                   ),
                 ),
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 16),
+                Text(context.l10n.text('about'),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => const ChangelogScreen()),
+                      );
+                    },
+                    icon: const Icon(Icons.history, color: AppColors.primary),
+                    label: Text(context.l10n.text('viewChangelog'),
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface)),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
               ],
             ),
-            const SizedBox(height: 32),
-            const Divider(),
-            const SizedBox(height: 16),
-            Text(context.l10n.text('appTheme'),
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text(
-                context.l10n.text('themeDescription'),
-                style: TextStyle(color: Colors.grey)),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _themeMode,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.palette),
-              ),
-              items: [
-                DropdownMenuItem(
-                  value: AppThemeController.systemValue,
-                  child: Text(context.l10n.text('systemTheme')),
-                ),
-                DropdownMenuItem(
-                  value: AppThemeController.lightValue,
-                  child: Text(context.l10n.text('light')),
-                ),
-                DropdownMenuItem(
-                  value: AppThemeController.darkValue,
-                  child: Text(context.l10n.text('dark')),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  _saveThemeMode(value);
-                }
-              },
-            ),
-            const SizedBox(height: 32),
-            const Divider(),
-            const SizedBox(height: 16),
-            Text(context.l10n.text('language'),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text(context.l10n.text('languageDescription'),
-                style: const TextStyle(color: Colors.grey)),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _language,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.language),
-              ),
-              items: [
-                DropdownMenuItem(value: AppLanguageController.systemValue, child: Text(context.l10n.text('systemLanguage'))),
-                const DropdownMenuItem(value: 'pt', child: Text('Português')),
-                const DropdownMenuItem(value: 'en', child: Text('English')),
-                const DropdownMenuItem(value: 'fr', child: Text('Français')),
-                const DropdownMenuItem(value: 'es', child: Text('Español')),
-                const DropdownMenuItem(value: 'zh', child: Text('简体中文')),
-                const DropdownMenuItem(value: 'ja', child: Text('日本語')),
-              ],
-              onChanged: (value) { if (value != null) _saveLanguage(value); },
-            ),
-            if (UpdateChecker.supportsCurrentPlatform) ...[
-              const SizedBox(height: 32),
-              const Divider(),
-              const SizedBox(height: 16),
-              Text(context.l10n.text('updates'),
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                secondary: const Icon(Icons.system_update),
-                title: Text(context.l10n.text('checkForUpdates')),
-                subtitle: Text(context.l10n.text('checkForUpdatesDescription')),
-                value: _updateCheckEnabled,
-                activeColor: AppColors.primary,
-                onChanged: _saveUpdateCheckEnabled,
-              ),
-            ],
-            const SizedBox(height: 32),
-            const Divider(),
-            const SizedBox(height: 16),
-            Text(context.l10n.text('dnsTypes'),
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text(context.l10n.text('dnsTypesDescription'),
-                style: TextStyle(color: Colors.grey)),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children: _availableTypes.map((type) {
-                return FilterChip(
-                  label: Text(type),
-                  selected: _dnsTypes.contains(type),
-                  selectedColor: AppColors.primary.withOpacity(0.3),
-                  checkmarkColor: AppColors.primary,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _dnsTypes.add(type);
-                      } else {
-                        if (_dnsTypes.length > 1) {
-                          _dnsTypes.remove(type);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(context.l10n.text('atLeastOneType'))),
-                          );
-                        }
-                      }
-                    });
-                    LocalStorage.saveDnsTypes(_dnsTypes);
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 32),
-            const Divider(),
-            const SizedBox(height: 16),
-            Text(context.l10n.text('changePassword'),
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _currentPassController,
-              obscureText: _obscureCurrentPass,
-              decoration: InputDecoration(
-                labelText: context.l10n.text('currentPassword'),
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(_obscureCurrentPass
-                      ? Icons.visibility
-                      : Icons.visibility_off),
-                  onPressed: () {
-                    setState(() {
-                      _obscureCurrentPass = !_obscureCurrentPass;
-                    });
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _newPassController,
-              obscureText: _obscureNewPass,
-              decoration: InputDecoration(
-                labelText: context.l10n.text('newPassword'),
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(_obscureNewPass
-                      ? Icons.visibility
-                      : Icons.visibility_off),
-                  onPressed: () {
-                    setState(() {
-                      _obscureNewPass = !_obscureNewPass;
-                    });
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _confirmPassController,
-              obscureText: _obscureConfirmPass,
-              decoration: InputDecoration(
-                labelText: context.l10n.text('confirmNewPassword'),
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(_obscureConfirmPass
-                      ? Icons.visibility
-                      : Icons.visibility_off),
-                  onPressed: () {
-                    setState(() {
-                      _obscureConfirmPass = !_obscureConfirmPass;
-                    });
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _changePassword,
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary),
-                child: Text(context.l10n.text('updatePassword'),
-                    style: TextStyle(color: Colors.white)),
-              ),
-            ),
-            const SizedBox(height: 32),
-            const Divider(),
-            const SizedBox(height: 16),
-            Text(context.l10n.text('about'),
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ChangelogScreen()),
-                  );
-                },
-                icon: const Icon(Icons.history, color: AppColors.primary),
-                label: Text(context.l10n.text('viewChangelog'),
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.primary),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-          ],
+          ),
         ),
       ),
-        ),
+    );
+  }
+}
+
+class _TokenPasswordAuthenticationDialog extends StatefulWidget {
+  const _TokenPasswordAuthenticationDialog({required this.passwordVerifier});
+
+  final Future<bool> Function(String password) passwordVerifier;
+
+  @override
+  State<_TokenPasswordAuthenticationDialog> createState() =>
+      _TokenPasswordAuthenticationDialogState();
+}
+
+class _TokenPasswordAuthenticationDialogState
+    extends State<_TokenPasswordAuthenticationDialog> {
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _invalidPassword = false;
+  bool _isVerifying = false;
+
+  Future<void> _verifyPassword() async {
+    if (_isVerifying) return;
+    setState(() {
+      _isVerifying = true;
+      _invalidPassword = false;
+    });
+
+    final isValid = await widget.passwordVerifier(_passwordController.text);
+    if (!mounted) return;
+
+    if (isValid) {
+      Navigator.of(context).pop(true);
+    } else {
+      setState(() {
+        _isVerifying = false;
+        _invalidPassword = true;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(context.l10n.text('confirmIdentity')),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(context.l10n.text('tokenRevealAuthenticationDescription')),
+          const SizedBox(height: 16),
+          TextField(
+            key: const ValueKey('tokenReauthenticationPassword'),
+            controller: _passwordController,
+            autofocus: true,
+            obscureText: _obscurePassword,
+            enabled: !_isVerifying,
+            onSubmitted: (_) => _verifyPassword(),
+            decoration: InputDecoration(
+              labelText: context.l10n.text('password'),
+              errorText: _invalidPassword
+                  ? context.l10n.text('credentialsInvalid')
+                  : null,
+              border: const OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.lock),
+              suffixIcon: IconButton(
+                icon: Icon(
+                    _obscurePassword ? Icons.visibility : Icons.visibility_off),
+                onPressed: () => setState(
+                  () => _obscurePassword = !_obscurePassword,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
+      actions: [
+        TextButton(
+          onPressed:
+              _isVerifying ? null : () => Navigator.of(context).pop(false),
+          child: Text(context.l10n.text('cancel')),
+        ),
+        FilledButton(
+          onPressed: _isVerifying ? null : _verifyPassword,
+          child: Text(context.l10n.text('authenticate')),
+        ),
+      ],
     );
   }
 }

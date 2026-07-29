@@ -4,6 +4,10 @@ Projet sur GitHub : [https://github.com/Tacioandrade/cloudflare-update-dns/](htt
 
 Toutes les modifications notables de ce projet seront documentées dans ce fichier.
 
+## [2.0.5] - 2026-07-29
+### Sécurité
+- Ajout d’une nouvelle authentification par biométrie, identifiants de l’appareil ou mot de passe de l’application avant d’afficher ou de copier le jeton API Cloudflare dans les Paramètres.
+
 ## [2.0.4] - 2026-07-27
 ### Ajouté / Modifié
 - Ajout sous macOS de la vérification quotidienne des nouvelles versions au démarrage, tout en conservant cette fonction désactivée sous iOS.

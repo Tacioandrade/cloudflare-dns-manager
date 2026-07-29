@@ -1,5 +1,11 @@
 # AGENTS.md
 
+## Memoria Operacional do Codex
+
+- Antes de executar qualquer comando Docker, leia integralmente `CODEX_MEMORY.md`.
+- O arquivo `CODEX_MEMORY.md` define as imagens autorizadas, as versoes do Flutter e as regras para evitar pulls e builds desnecessarios.
+- Nao use imagens Docker com tag `latest` como imagem-base externa, mesmo que uma imagem local gerada pelo Compose apareca com essa tag.
+
 ## Nome do Projeto
 
 - O nome atual do projeto/aplicativo e **Cloudflare DNS Manager**.

@@ -4,6 +4,10 @@ Project on GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](http
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.5] - 2026-07-29
+### Security
+- Added reauthentication using biometrics, device credentials, or the app password before viewing or copying the Cloudflare API Token in Settings.
+
 ## [2.0.4] - 2026-07-27
 ### Added / Changed
 - Added daily update checks when opening the app on macOS, while keeping this feature disabled on iOS.
