@@ -6,7 +6,7 @@ Aplicativo em Flutter para gerenciamento de registros DNS via Cloudflare API.
 
 Este README contem as informacoes compartilhadas entre as plataformas. Para comandos de build, testes e detalhes especificos, use os guias por sistema operacional:
 
-- [Android](README-Android.md)
+- [Android](README-Android.md) — [Baixar na Play Store](https://play.google.com/store/apps/details?id=br.com.multiti.cloudflare_update_dns)
 - [Linux](README-Linux.md)
 - [Windows](README-Windows.md)
 - [iOS](README-iOS.md)
