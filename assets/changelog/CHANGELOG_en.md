@@ -4,6 +4,11 @@ Project on GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](http
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.6] - 2026-08-11
+### Added / Changed
+- Added an option to copy a DNS record from the list, with a pre-filled form and validation to prevent duplicate entries.
+- Standardized the release pipeline on Flutter 3.38.10 for Linux, Windows, and macOS builds.
+
 ## [2.0.5] - 2026-07-29
 ### Security
 - Added reauthentication using biometrics, device credentials, or the app password before viewing or copying the Cloudflare API Token in Settings.

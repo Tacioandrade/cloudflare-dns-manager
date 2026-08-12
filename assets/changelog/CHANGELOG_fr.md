@@ -4,6 +4,11 @@ Projet sur GitHub : [https://github.com/Tacioandrade/cloudflare-update-dns/](htt
 
 Toutes les modifications notables de ce projet seront documentées dans ce fichier.
 
+## [2.0.6] - 2026-08-11
+### Ajouté / Modifié
+- Ajout d’une option permettant de copier un enregistrement DNS depuis la liste, avec un formulaire prérempli et une validation empêchant les doublons.
+- Standardisation du pipeline de publication sur Flutter 3.38.10 pour les builds Linux, Windows et macOS.
+
 ## [2.0.5] - 2026-07-29
 ### Sécurité
 - Ajout d’une nouvelle authentification par biométrie, identifiants de l’appareil ou mot de passe de l’application avant d’afficher ou de copier le jeton API Cloudflare dans les Paramètres.

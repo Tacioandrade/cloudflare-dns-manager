@@ -122,5 +122,48 @@ void main() {
         isNotNull,
       );
     });
+
+    test('detects duplicate DNS records by type, name, and content', () {
+      final records = [
+        {
+          'type': 'CNAME',
+          'name': 'WWW.Example.com',
+          'content': 'Target.Example.com.',
+        },
+        {
+          'type': 'TXT',
+          'name': 'example.com',
+          'content': 'Verification=AbC',
+        },
+      ];
+
+      expect(
+        DnsRecordValidator.isDuplicate(
+          records: records,
+          type: 'cname',
+          name: 'www.example.com.',
+          content: 'target.example.com',
+        ),
+        isTrue,
+      );
+      expect(
+        DnsRecordValidator.isDuplicate(
+          records: records,
+          type: 'CNAME',
+          name: 'www.example.com',
+          content: 'other.example.com',
+        ),
+        isFalse,
+      );
+      expect(
+        DnsRecordValidator.isDuplicate(
+          records: records,
+          type: 'TXT',
+          name: 'example.com',
+          content: 'Verification=abc',
+        ),
+        isFalse,
+      );
+    });
   });
 }

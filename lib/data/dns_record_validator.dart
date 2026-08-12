@@ -46,6 +46,53 @@ class DnsRecordValidator {
     }
   }
 
+  static bool isDuplicate({
+    required Iterable<dynamic> records,
+    required String type,
+    required String name,
+    required String content,
+  }) {
+    final normalizedType = type.trim().toUpperCase();
+    final normalizedName = _normalizeDnsName(name);
+    final normalizedContent = _normalizeContent(normalizedType, content);
+
+    return records.any((record) {
+      if (record is! Map) return false;
+
+      final recordType = '${record['type']}'.trim().toUpperCase();
+      final recordName = _normalizeDnsName('${record['name']}');
+      final recordContent =
+          _normalizeContent(recordType, '${record['content']}');
+
+      return recordType == normalizedType &&
+          recordName == normalizedName &&
+          recordContent == normalizedContent;
+    });
+  }
+
+  static String _normalizeDnsName(String value) {
+    final normalized = value.trim().toLowerCase();
+    return normalized.endsWith('.')
+        ? normalized.substring(0, normalized.length - 1)
+        : normalized;
+  }
+
+  static String _normalizeContent(String type, String value) {
+    final normalized = value.trim();
+    if ({'CNAME', 'MX', 'NS'}.contains(type)) {
+      return _normalizeDnsName(normalized);
+    }
+    if (type == 'SRV') {
+      final parts = normalized.split(RegExp(r'\s+'));
+      if (parts.length == 4) {
+        return '${parts[0]} ${parts[1]} ${parts[2]} '
+            '${_normalizeDnsName(parts[3])}';
+      }
+      return normalized.toLowerCase();
+    }
+    return normalized;
+  }
+
   static bool _isValidIpv4(String value) {
     final parts = value.split('.');
     if (parts.length != 4) return false;

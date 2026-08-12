@@ -135,8 +135,7 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                           return FilterChip(
                             label: Text(type),
                             selected: _selectedTypes.contains(type),
-                            selectedColor:
-                                AppColors.primary.withOpacity(0.3),
+                            selectedColor: AppColors.primary.withOpacity(0.3),
                             checkmarkColor: AppColors.primary,
                             onSelected: (selected) =>
                                 _toggleTypeFilter(type, selected),
@@ -165,8 +164,7 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                             child: FilterChip(
                               label: Text(context.l10n.text('proxyEnabled')),
                               selected: _selectedProxyStates.contains(true),
-                              selectedColor:
-                                  AppColors.primary.withOpacity(0.3),
+                              selectedColor: AppColors.primary.withOpacity(0.3),
                               checkmarkColor: AppColors.primary,
                               onSelected: (selected) =>
                                   _toggleProxyFilter(true, selected),
@@ -175,11 +173,9 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                           SizedBox(
                             width: 132,
                             child: FilterChip(
-                              label:
-                                  Text(context.l10n.text('proxyDisabled')),
+                              label: Text(context.l10n.text('proxyDisabled')),
                               selected: _selectedProxyStates.contains(false),
-                              selectedColor:
-                                  AppColors.primary.withOpacity(0.3),
+                              selectedColor: AppColors.primary.withOpacity(0.3),
                               checkmarkColor: AppColors.primary,
                               onSelected: (selected) =>
                                   _toggleProxyFilter(false, selected),
@@ -260,6 +256,11 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                             ? (val) => _toggleProxy(record, val)
                             : null,
                         activeColor: AppColors.primary,
+                      ),
+                      IconButton(
+                        tooltip: context.l10n.text('copyRecord'),
+                        icon: const Icon(Icons.content_copy),
+                        onPressed: () => _showRecordDialog(record, true),
                       ),
                       IconButton(
                         icon: const Icon(Icons.edit),
@@ -391,7 +392,7 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
     }
   }
 
-  void _showRecordDialog([dynamic record]) {
+  void _showRecordDialog([dynamic record, bool isCopy = false]) {
     String initialName = '';
     if (record != null) {
       String fullName = record['name'];
@@ -447,8 +448,25 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
       if (DnsRecordValidator.isProxiableType(selectedType)) {
         data['proxied'] = isProxied;
       }
+
+      if (isCopy &&
+          DnsRecordValidator.isDuplicate(
+            records: _records,
+            type: selectedType,
+            name: finalName,
+            content: content,
+          )) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.text('duplicateRecord')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
       try {
-        if (record == null) {
+        if (record == null || isCopy) {
           await ApiService.createDnsRecord(widget.zoneId, data);
         } else {
           await ApiService.updateDnsRecord(widget.zoneId, record['id'], data);
@@ -479,9 +497,11 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
               child: FocusScope(
                 autofocus: true,
                 child: AlertDialog(
-                  title: Text(record == null
-                      ? context.l10n.text('newRecord')
-                      : context.l10n.text('editRecord')),
+                  title: Text(isCopy
+                      ? context.l10n.text('copyRecord')
+                      : record == null
+                          ? context.l10n.text('newRecord')
+                          : context.l10n.text('editRecord')),
                   content: SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
