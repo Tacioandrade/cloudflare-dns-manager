@@ -43,13 +43,11 @@ imagem local já existir.
 ### Linux
 
 - Nome do builder local: `cloudflare-dns-linux-builder:latest`.
-- A configuração atual usa `ghcr.io/cirruslabs/flutter:3.22.0`.
-- Flutter 3.22.0 é incompatível com o `pubspec.lock`, que exige Flutter 3.35.0
-  ou superior.
-- Não usar nem reconstruir esse builder para validações rotineiras enquanto o
-  Dockerfile Linux não for atualizado para uma versão compatível.
-- Usar o builder Linux somente para build nativo Linux e apenas depois de
-  corrigir sua versão do Flutter. Não baixar a imagem 3.22.0 novamente.
+- Imagem-base externa autorizada:
+  `ghcr.io/cirruslabs/flutter:3.38.10`.
+- O builder Linux usa Flutter 3.38.10, compatível com o `pubspec.lock` e com o
+  pipeline de release atual.
+- Reutilizar o builder local com `--no-build` quando ele já estiver atualizado.
 
 ### Windows
 
@@ -92,6 +90,7 @@ imagem local já existir.
 - `flutter test`: mesma regra de formatação.
 - APK ou AAB: builder Android local, com `--no-build` quando já existir.
 - Servidor Web com proxy: serviços `test` e `proxy` do Compose Android.
-- Bundle Linux: aguardar atualização do Dockerfile Linux.
+- Bundle Linux: builder local com Flutter 3.38.10 e `--no-build` quando a imagem
+  já estiver atualizada.
 - Bundle Windows: aguardar atualização do Flutter no Dockerfile Windows e usar
   Windows containers.

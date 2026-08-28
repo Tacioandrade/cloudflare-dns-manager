@@ -1,4 +1,4 @@
-FROM ghcr.io/cirruslabs/flutter:3.22.0
+FROM ghcr.io/cirruslabs/flutter:3.38.10
 
 ENV DEBIAN_FRONTEND=noninteractive
 

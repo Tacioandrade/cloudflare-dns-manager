@@ -22,6 +22,9 @@ class DnsEditorScreen extends StatefulWidget {
 }
 
 class _DnsEditorScreenState extends State<DnsEditorScreen> {
+  static const double _footerHeight = 88;
+  static const double _footerActionClearance = 88;
+
   List<dynamic> _records = [];
   bool _isLoading = true;
   String _searchQuery = '';
@@ -224,20 +227,68 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
             selectedProxyStates: _selectedProxyStates,
           );
 
+          final typeCounts = <String, int>{
+            'A': 0,
+            'CNAME': 0,
+            'TXT': 0,
+          };
+          for (final record in _records) {
+            final type = record['type']?.toString().toUpperCase();
+            if (typeCounts.containsKey(type)) {
+              typeCounts[type!] = typeCounts[type]! + 1;
+            }
+          }
+
+          final safeBottom = MediaQuery.viewPaddingOf(context).bottom;
+          final footer = SizedBox(
+            height: _footerHeight + safeBottom,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                _footerActionClearance,
+                16 + safeBottom,
+              ),
+              child: Center(
+                child: Text(
+                  context.l10n.text(
+                    'dnsRecordCounts',
+                    values: {
+                      'total': '${_records.length}',
+                      'a': '${typeCounts['A']}',
+                      'cname': '${typeCounts['CNAME']}',
+                      'txt': '${typeCounts['TXT']}',
+                    },
+                  ),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+              ),
+            ),
+          );
+
           if (filteredRecords.isEmpty) {
             return ListView(
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 100),
                   child: Center(child: Text(context.l10n.text('noRecords'))),
-                )
+                ),
+                footer,
               ],
             );
           }
 
           return ListView.builder(
-            itemCount: filteredRecords.length,
+            itemCount: filteredRecords.length + 1,
             itemBuilder: (context, index) {
+              if (index == filteredRecords.length) {
+                return footer;
+              }
+
               final record = filteredRecords[index];
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -250,12 +301,17 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Switch(
-                        value: record['proxied'],
-                        onChanged: record['proxiable']
-                            ? (val) => _toggleProxy(record, val)
-                            : null,
-                        activeColor: AppColors.primary,
+                      Tooltip(
+                        message: context.l10n.text(
+                          record['proxied'] ? 'disableProxy' : 'enableProxy',
+                        ),
+                        child: Switch(
+                          value: record['proxied'],
+                          onChanged: record['proxiable']
+                              ? (val) => _toggleProxy(record, val)
+                              : null,
+                          activeColor: AppColors.primary,
+                        ),
                       ),
                       IconButton(
                         tooltip: context.l10n.text('copyRecord'),
@@ -263,10 +319,12 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                         onPressed: () => _showRecordDialog(record, true),
                       ),
                       IconButton(
+                        tooltip: context.l10n.text('editRecord'),
                         icon: const Icon(Icons.edit),
                         onPressed: () => _showRecordDialog(record),
                       ),
                       IconButton(
+                        tooltip: context.l10n.text('deleteRecordAction'),
                         icon: const Icon(Icons.delete, color: AppColors.error),
                         onPressed: () => _confirmDeleteRecord(record),
                       ),

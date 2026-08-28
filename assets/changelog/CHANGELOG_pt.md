@@ -4,6 +4,13 @@ Projeto no GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](http
 
 Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
+## [2.0.8] - 2026-08-28
+### Adicionado / Alterado
+- Adicionados totais de domínios e de registros DNS nos rodapés das respectivas listagens, incluindo a contagem de registros A, CNAME e TXT.
+- Adicionados rodapés responsivos com a mesma altura dos botões flutuantes e suas margens, impedindo que cubram o último item em telas de computador, tablet ou celular.
+- Atualizado o builder Linux para Flutter 3.38.10, alinhando-o ao `pubspec.lock` e ao pipeline de release.
+- Adicionados textos de ajuda ao passar o mouse sobre as ações de proxy, edição e exclusão de registros DNS.
+
 ## [2.0.6] - 2026-08-11
 ### Adicionado / Alterado
 - Adicionada a opção de copiar um registro DNS a partir da listagem, com formulário preenchido e validação para impedir entradas duplicadas.

@@ -16,6 +16,9 @@ class DomainsScreen extends StatefulWidget {
 }
 
 class _DomainsScreenState extends State<DomainsScreen> {
+  static const double _footerHeight = 88;
+  static const double _footerActionClearance = 88;
+
   List<dynamic> _zones = [];
   bool _isLoading = true;
   String? _error;
@@ -108,54 +111,54 @@ class _DomainsScreenState extends State<DomainsScreen> {
       child: FocusScope(
         autofocus: true,
         child: Scaffold(
-      appBar: AppBar(
-        title: _isSearching
-            ? TextField(
-                focusNode: _searchFocusNode,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: context.l10n.text('searchDomain'),
-                  border: InputBorder.none,
-                ),
-                onChanged: (val) {
+          appBar: AppBar(
+            title: _isSearching
+                ? TextField(
+                    focusNode: _searchFocusNode,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: context.l10n.text('searchDomain'),
+                      border: InputBorder.none,
+                    ),
+                    onChanged: (val) {
+                      setState(() {
+                        _searchQuery = val;
+                      });
+                    },
+                  )
+                : Text(context.l10n.text('domains')),
+            actions: [
+              IconButton(
+                icon: Icon(_isSearching ? Icons.close : Icons.search),
+                onPressed: () {
                   setState(() {
-                    _searchQuery = val;
+                    _isSearching = !_isSearching;
+                    if (!_isSearching) {
+                      _searchQuery = '';
+                    }
                   });
                 },
-              )
-            : Text(context.l10n.text('domains')),
-        actions: [
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                _isSearching = !_isSearching;
-                if (!_isSearching) {
-                  _searchQuery = '';
-                }
-              });
-            },
+              ),
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  );
+                  _loadZones();
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: _logout,
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              );
-              _loadZones();
-            },
+          body: _buildBody(),
+          floatingActionButton: FloatingActionButton(
+            onPressed: _loadZones,
+            child: const Icon(Icons.refresh),
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-          ),
-        ],
-      ),
-      body: _buildBody(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _loadZones,
-        child: const Icon(Icons.refresh),
-      ),
         ),
       ),
     );
@@ -202,7 +205,8 @@ class _DomainsScreenState extends State<DomainsScreen> {
             color: AppColors.error.withOpacity(0.1),
             padding: const EdgeInsets.all(12),
             child: Text(
-              context.l10n.text('partialDomainsError', values: {'error': _error!}),
+              context.l10n
+                  .text('partialDomainsError', values: {'error': _error!}),
               style: const TextStyle(color: AppColors.error),
             ),
           ),
@@ -212,6 +216,32 @@ class _DomainsScreenState extends State<DomainsScreen> {
   }
 
   Widget _buildZonesList() {
+    final safeBottom = MediaQuery.viewPaddingOf(context).bottom;
+    final footer = SizedBox(
+      height: _footerHeight + safeBottom,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          _footerActionClearance,
+          16 + safeBottom,
+        ),
+        child: Center(
+          child: Text(
+            context.l10n.text(
+              'availableDomainsCount',
+              values: {'count': '${_zones.length}'},
+            ),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+        ),
+      ),
+    );
+
     if (_zones.isEmpty) {
       return RefreshIndicator(
         onRefresh: _loadZones,
@@ -220,7 +250,8 @@ class _DomainsScreenState extends State<DomainsScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 100),
               child: Center(child: Text(context.l10n.text('noDomains'))),
-            )
+            ),
+            footer,
           ],
         ),
       );
@@ -240,14 +271,19 @@ class _DomainsScreenState extends State<DomainsScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 100),
-                  child: Center(
-                      child: Text(context.l10n.text('noDomainsSearch'))),
-                )
+                  child:
+                      Center(child: Text(context.l10n.text('noDomainsSearch'))),
+                ),
+                footer,
               ],
             )
           : ListView.builder(
-              itemCount: filteredZones.length,
+              itemCount: filteredZones.length + 1,
               itemBuilder: (context, index) {
+                if (index == filteredZones.length) {
+                  return footer;
+                }
+
                 final zone = filteredZones[index];
                 final isActive = zone['status'] == 'active';
 
