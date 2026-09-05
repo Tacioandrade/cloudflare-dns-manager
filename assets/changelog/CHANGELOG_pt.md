@@ -4,6 +4,11 @@ Projeto no GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](http
 
 Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
+## [2.0.9] - 2026-09-05
+### Adicionado / Alterado
+- Padronizados o builder Windows e os requisitos do projeto em Flutter 3.38.10 para todas as plataformas.
+- Adicionado um tutorial de configuração do Cloudflare API Token na tela inicial quando nenhum token estiver definido, com link para criação e as permissões necessárias.
+
 ## [2.0.8] - 2026-08-28
 ### Adicionado / Alterado
 - Adicionados totais de domínios e de registros DNS nos rodapés das respectivas listagens, incluindo a contagem de registros A, CNAME e TXT.

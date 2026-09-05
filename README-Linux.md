@@ -41,6 +41,7 @@ Para executar depois do build:
 ## Detalhes da Plataforma
 
 - Plataforma alvo: Linux desktop x64.
+- Flutter usado no build Linux: 3.38.10.
 - Artefato gerado: bundle nativo com binario ELF.
 - Docker dedicado: `Docker/Linux/Dockerfile`.
 - Compose dedicado: `Docker/Linux/docker-compose.yml`.

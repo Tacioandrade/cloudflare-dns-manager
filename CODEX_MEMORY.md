@@ -54,11 +54,10 @@ imagem local já existir.
 - Imagem-base autorizada para o sistema:
   `mcr.microsoft.com/windows/servercore:ltsc2022`.
 - Nome do builder local: `cloudflare-dns-windows-builder:latest`.
-- O Dockerfile atual instala Flutter 3.22.0, incompatível com o
-  `pubspec.lock`.
-- Não construir esse builder até que sua versão do Flutter seja atualizada.
-- Depois da atualização, usá-lo somente para build ou validação específica do
-  Windows, em uma máquina configurada para Windows containers.
+- O builder Windows usa Flutter 3.38.10, compatível com o `pubspec.lock` e com
+  o pipeline de release atual.
+- Usá-lo somente para build ou validação específica do Windows, em uma máquina
+  configurada para Windows containers.
 
 ## Regras obrigatórias antes de usar Docker
 
@@ -92,5 +91,5 @@ imagem local já existir.
 - Servidor Web com proxy: serviços `test` e `proxy` do Compose Android.
 - Bundle Linux: builder local com Flutter 3.38.10 e `--no-build` quando a imagem
   já estiver atualizada.
-- Bundle Windows: aguardar atualização do Flutter no Dockerfile Windows e usar
-  Windows containers.
+- Bundle Windows: builder local com Flutter 3.38.10 em uma máquina configurada
+  para Windows containers.

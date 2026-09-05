@@ -4,7 +4,7 @@ Guia para compilar e testar a versão macOS em um Mac. A compilação exige macO
 
 ## Preparação
 
-1. Instale o Flutter, Xcode e CocoaPods.
+1. Instale o Flutter 3.38.10, Xcode e CocoaPods.
 2. Execute `flutter pub get` para instalar os pods.
 3. Abra `macos/Runner.xcworkspace` no Xcode para configurar assinatura e distribuição.
 
@@ -24,6 +24,7 @@ cuja mensagem começa com `Versão X.Y.Z`.
 
 ## Detalhes
 
+- Flutter usado nos testes e builds: 3.38.10.
 - Alvo mínimo: macOS 10.15.
 - Bundle ID: `br.com.multiti.cloudflare_dns`.
 - O sandbox inclui acesso de rede de saída para a API Cloudflare.

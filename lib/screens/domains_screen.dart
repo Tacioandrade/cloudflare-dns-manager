@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../core/constants.dart';
 import '../data/api.dart';
 import '../data/local_storage.dart';
@@ -21,6 +22,7 @@ class _DomainsScreenState extends State<DomainsScreen> {
 
   List<dynamic> _zones = [];
   bool _isLoading = true;
+  bool _tokenNotConfigured = false;
   String? _error;
   String _searchQuery = '';
   bool _isSearching = false;
@@ -43,6 +45,7 @@ class _DomainsScreenState extends State<DomainsScreen> {
     final loadId = ++_loadId;
     setState(() {
       _isLoading = true;
+      _tokenNotConfigured = false;
       _error = null;
       _zones = [];
     });
@@ -53,7 +56,7 @@ class _DomainsScreenState extends State<DomainsScreen> {
     if (token == null || token.isEmpty) {
       setState(() {
         _isLoading = false;
-        _error = context.l10n.text('tokenNotConfigured');
+        _tokenNotConfigured = true;
       });
       return;
     }
@@ -74,6 +77,25 @@ class _DomainsScreenState extends State<DomainsScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _openApiTokensPage() async {
+    final opened = await launchUrl(
+      Uri.parse('https://dash.cloudflare.com/profile/api-tokens'),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.text('unableOpenLink'))),
+      );
+    }
+  }
+
+  Future<void> _openSettings() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+    );
+    _loadZones();
   }
 
   void _logout() async {
@@ -141,12 +163,7 @@ class _DomainsScreenState extends State<DomainsScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.settings),
-                onPressed: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                  );
-                  _loadZones();
-                },
+                onPressed: _openSettings,
               ),
               IconButton(
                 icon: const Icon(Icons.logout),
@@ -169,6 +186,10 @@ class _DomainsScreenState extends State<DomainsScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    if (_tokenNotConfigured) {
+      return _buildTokenTutorial();
+    }
+
     if (_error != null && _zones.isEmpty) {
       return Center(
         child: Padding(
@@ -180,16 +201,6 @@ class _DomainsScreenState extends State<DomainsScreen> {
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: AppColors.error)),
               const SizedBox(height: 16),
-              if (_error!.contains('Token'))
-                ElevatedButton(
-                  onPressed: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                    );
-                    _loadZones();
-                  },
-                  child: Text(context.l10n.text('configureToken')),
-                ),
             ],
           ),
         ),
@@ -212,6 +223,134 @@ class _DomainsScreenState extends State<DomainsScreen> {
           ),
         Expanded(child: _buildZonesList()),
       ],
+    );
+  }
+
+  Widget _buildTokenTutorial() {
+    final l10n = context.l10n;
+    final textTheme = Theme.of(context).textTheme;
+    final linkStyle = textTheme.bodyLarge?.copyWith(
+      color: Theme.of(context).colorScheme.primary,
+      decoration: TextDecoration.underline,
+      decorationColor: Theme.of(context).colorScheme.primary,
+    );
+
+    Widget step(String number, Widget content) => Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 28,
+                child: Text('$number.', style: textTheme.bodyLarge),
+              ),
+              Expanded(child: content),
+            ],
+          ),
+        );
+
+    Widget permission(String resource, String action) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 7, right: 10),
+                child: Icon(Icons.circle, size: 6),
+              ),
+              Expanded(
+                child: Text(
+                  '$resource => $action',
+                  style: textTheme.bodyLarge,
+                ),
+              ),
+            ],
+          ),
+        );
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 112),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.text('tokenTutorialTitle'),
+                    style: textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 24),
+                  step(
+                    '1',
+                    Text(l10n.text('tokenTutorialLogin'),
+                        style: textTheme.bodyLarge),
+                  ),
+                  step(
+                    '2',
+                    Text(l10n.text('tokenTutorialOpenSettings'),
+                        style: textTheme.bodyLarge),
+                  ),
+                  step(
+                    '3',
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(l10n.text('tokenTutorialPaste'),
+                            style: textTheme.bodyLarge),
+                        InkWell(
+                          key: const ValueKey('cloudflareApiTokenLink'),
+                          onTap: _openApiTokensPage,
+                          child: Text('Cloudflare API Token', style: linkStyle),
+                        ),
+                        Text('.', style: textTheme.bodyLarge),
+                      ],
+                    ),
+                  ),
+                  step(
+                    '4',
+                    Text(l10n.text('tokenTutorialTest'),
+                        style: textTheme.bodyLarge),
+                  ),
+                  step(
+                    '5',
+                    Text(l10n.text('tokenTutorialSave'),
+                        style: textTheme.bodyLarge),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    l10n.text('tokenTutorialPermissionsIntro'),
+                    style: textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  permission(
+                    l10n.text('tokenPermissionZone'),
+                    '${l10n.text('tokenPermissionCachePurge')} => ${l10n.text('tokenPermissionClear')}',
+                  ),
+                  permission(
+                    l10n.text('tokenPermissionZone'),
+                    'DNS => ${l10n.text('tokenPermissionEdit')}',
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: ElevatedButton.icon(
+                      key: const ValueKey('tokenTutorialSettingsButton'),
+                      onPressed: _openSettings,
+                      icon: const Icon(Icons.settings),
+                      label: Text(l10n.text('configureToken')),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

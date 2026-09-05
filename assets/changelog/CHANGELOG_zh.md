@@ -4,6 +4,11 @@ GitHub 上的项目：[https://github.com/Tacioandrade/cloudflare-update-dns/](h
 
 本项目的所有重要变更都将记录在此文件中。
 
+## [2.0.9] - 2026-09-05
+### 新增 / 更改
+- 将 Windows 构建器和项目要求在所有平台上统一为 Flutter 3.38.10。
+- 当未配置令牌时，在首页新增 Cloudflare API 令牌设置教程，其中包含创建链接和所需权限。
+
 ## [2.0.8] - 2026-08-28
 ### 新增 / 更改
 - 在域名和 DNS 记录列表的页脚中新增总数信息，包括 A、CNAME 和 TXT 记录的数量。

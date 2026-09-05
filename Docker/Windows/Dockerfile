@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2022
 
 SHELL ["powershell", "-NoLogo", "-ExecutionPolicy", "Bypass", "-Command"]
 
-ENV FLUTTER_VERSION=3.22.0
+ENV FLUTTER_VERSION=3.38.10
 ENV FLUTTER_HOME=C:\flutter
 ENV PUB_CACHE=C:\pub-cache
 ENV PATH="C:\flutter\bin;C:\Program Files\Git\cmd;C:\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin;C:\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja;C:\BuildTools\MSBuild\Current\Bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0"

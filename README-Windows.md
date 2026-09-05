@@ -55,7 +55,7 @@ build\windows\x64\runner\Release\cloudflare_dns.exe
 
 A imagem Windows instala:
 
-- Flutter `3.22.0`.
+- Flutter `3.38.10`.
 - Git for Windows.
 - Visual Studio Build Tools com C++ workload, CMake e Windows SDK.
 
