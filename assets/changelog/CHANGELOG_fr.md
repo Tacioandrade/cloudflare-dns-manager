@@ -4,6 +4,10 @@ Projet sur GitHub : [https://github.com/Tacioandrade/cloudflare-update-dns/](htt
 
 Toutes les modifications notables de ce projet seront documentées dans ce fichier.
 
+## [2.0.10] - 2026-09-16
+### Corrigé
+- Autorisation des traits de soulignement et des autres caractères valides dans les noms DNS pour les cibles des enregistrements CNAME, MX, NS et SRV, tout en conservant les limites de taille définies pour les noms et les libellés DNS.
+
 ## [2.0.9] - 2026-09-05
 ### Ajouté / Modifié
 - Standardisation du builder Windows et des prérequis du projet sur Flutter 3.38.10 pour toutes les plateformes.

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class DnsRecordValidator {
   static bool isProxiableType(String type) {
     return {'A', 'AAAA', 'CNAME'}.contains(type.trim().toUpperCase());
@@ -124,7 +126,9 @@ class DnsRecordValidator {
       domain = domain.substring(0, domain.length - 1);
     }
 
-    if (domain.isEmpty || domain.length > 253 || !domain.contains('.')) {
+    if (domain.isEmpty ||
+        utf8.encode(domain).length > 253 ||
+        !domain.contains('.')) {
       return false;
     }
 
@@ -134,10 +138,9 @@ class DnsRecordValidator {
 
     final labels = domain.split('.');
     for (final label in labels) {
-      if (label.isEmpty || label.length > 63) return false;
-      if (!RegExp(r'^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$').hasMatch(label)) {
-        return false;
-      }
+      // DNS labels are not restricted to the hostname LDH character set.
+      // Cloudflare accepts underscores and other DNS-valid octets.
+      if (label.isEmpty || utf8.encode(label).length > 63) return false;
     }
 
     return true;

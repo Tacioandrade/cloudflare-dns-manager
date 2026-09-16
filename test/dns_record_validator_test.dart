@@ -41,7 +41,7 @@ void main() {
       );
     });
 
-    test('validates CNAME, MX, and NS record content as domain names', () {
+    test('validates CNAME, MX, and NS record content as DNS names', () {
       for (final type in ['CNAME', 'MX', 'NS']) {
         expect(
           DnsRecordValidator.validateContent(
@@ -60,9 +60,23 @@ void main() {
         expect(
           DnsRecordValidator.validateContent(
             type: type,
-            content: '-invalid.example',
+            content: '_service._tcp.example',
           ),
-          isNotNull,
+          isNull,
+        );
+        expect(
+          DnsRecordValidator.validateContent(
+            type: type,
+            content: '-edge-.example',
+          ),
+          isNull,
+        );
+        expect(
+          DnsRecordValidator.validateContent(
+            type: type,
+            content: 'serviço.example',
+          ),
+          isNull,
         );
         expect(
           DnsRecordValidator.validateContent(type: type, content: 'localhost'),
@@ -85,6 +99,23 @@ void main() {
       }
     });
 
+    test('rejects invalid DNS name sizes and empty labels', () {
+      expect(
+        DnsRecordValidator.validateContent(
+          type: 'CNAME',
+          content: 'target..example',
+        ),
+        isNotNull,
+      );
+      expect(
+        DnsRecordValidator.validateContent(
+          type: 'CNAME',
+          content: '${'a' * 64}.example',
+        ),
+        isNotNull,
+      );
+    });
+
     test('accepts non-empty TXT record content', () {
       expect(
         DnsRecordValidator.validateContent(
@@ -104,6 +135,13 @@ void main() {
         DnsRecordValidator.validateContent(
           type: 'SRV',
           content: '10 20 443 service.example',
+        ),
+        isNull,
+      );
+      expect(
+        DnsRecordValidator.validateContent(
+          type: 'SRV',
+          content: '10 20 443 _service.example',
         ),
         isNull,
       );

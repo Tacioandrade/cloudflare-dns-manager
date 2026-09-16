@@ -4,6 +4,10 @@ GitHub 上的项目：[https://github.com/Tacioandrade/cloudflare-update-dns/](h
 
 本项目的所有重要变更都将记录在此文件中。
 
+## [2.0.10] - 2026-09-16
+### 修复
+- CNAME、MX、NS 和 SRV 记录目标现已允许使用下划线及其他有效的 DNS 名称字符，同时保留 DNS 名称和标签的规定长度限制。
+
 ## [2.0.9] - 2026-09-05
 ### 新增 / 更改
 - 将 Windows 构建器和项目要求在所有平台上统一为 Flutter 3.38.10。
