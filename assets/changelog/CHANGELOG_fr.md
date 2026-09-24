@@ -4,6 +4,10 @@ Projet sur GitHub : [https://github.com/Tacioandrade/cloudflare-update-dns/](htt
 
 Toutes les modifications notables de ce projet seront documentées dans ce fichier.
 
+## [2.0.11] - 2026-09-24
+### Ajouté
+- Ajout de la suppression groupée des enregistrements DNS, avec sélection par le bouton de la barre d’outils ou par appui long, confirmation détaillée et rechargement automatique de la liste.
+
 ## [2.0.10] - 2026-09-16
 ### Corrigé
 - Autorisation des traits de soulignement et des autres caractères valides dans les noms DNS pour les cibles des enregistrements CNAME, MX, NS et SRV, tout en conservant les limites de taille définies pour les noms et les libellés DNS.

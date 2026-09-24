@@ -4,6 +4,10 @@ Project on GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](http
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.11] - 2026-09-24
+### Added
+- Added batch deletion for DNS records, with selection by toolbar button or long press, detailed confirmation, and automatic list reload.
+
 ## [2.0.10] - 2026-09-16
 ### Fixed
 - Allowed underscores and other valid DNS name characters in CNAME, MX, NS, and SRV record targets while preserving the defined size limits for DNS names and labels.

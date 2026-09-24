@@ -4,6 +4,10 @@ Proyecto en GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](htt
 
 Todos los cambios destacables de este proyecto se documentarán en este archivo.
 
+## [2.0.11] - 2026-09-24
+### Añadido
+- Se añadió la eliminación por lotes de registros DNS, con selección mediante el botón de la barra de herramientas o una pulsación prolongada, confirmación detallada y recarga automática de la lista.
+
 ## [2.0.10] - 2026-09-16
 ### Corregido
 - Se permitieron los guiones bajos y los demás caracteres válidos en nombres DNS para los destinos de registros CNAME, MX, NS y SRV, manteniendo los límites de tamaño definidos para nombres y etiquetas DNS.

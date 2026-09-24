@@ -7,14 +7,24 @@ import '../data/dns_record_validator.dart';
 import '../data/local_storage.dart';
 import '../l10n/app_localizations.dart';
 
+typedef DnsRecordsLoader = Future<List<dynamic>> Function(String zoneId);
+typedef DnsRecordDeleter = Future<void> Function(
+  String zoneId,
+  String recordId,
+);
+
 class DnsEditorScreen extends StatefulWidget {
   final String zoneId;
   final String zoneName;
+  final DnsRecordsLoader? recordsLoader;
+  final DnsRecordDeleter? recordDeleter;
 
   const DnsEditorScreen({
     super.key,
     required this.zoneId,
     required this.zoneName,
+    this.recordsLoader,
+    this.recordDeleter,
   });
 
   @override
@@ -30,10 +40,13 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
   String _searchQuery = '';
   bool _isSearching = false;
   bool _isPurgingCache = false;
+  bool _isBulkSelectionMode = false;
+  bool _isBulkDeleting = false;
   bool _areFiltersVisible = false;
   List<String> _allowedTypes = ['A', 'CNAME'];
   final Set<String> _selectedTypes = {};
   final Set<bool> _selectedProxyStates = {};
+  final Set<String> _selectedRecordIds = {};
   final FocusNode _searchFocusNode = FocusNode();
 
   bool get _hasActiveFilters =>
@@ -64,7 +77,9 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
   Future<void> _loadRecords() async {
     setState(() => _isLoading = true);
     try {
-      final records = await ApiService.listDnsRecords(widget.zoneId);
+      final records = await (widget.recordsLoader ?? ApiService.listDnsRecords)(
+        widget.zoneId,
+      );
       if (!mounted) return;
       setState(() {
         _records = records;
@@ -102,6 +117,36 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
     setState(() {
       _selectedTypes.clear();
       _selectedProxyStates.clear();
+    });
+  }
+
+  void _enterBulkSelection([dynamic record]) {
+    setState(() {
+      _isBulkSelectionMode = true;
+      final recordId = record?['id']?.toString();
+      if (recordId != null) {
+        _selectedRecordIds.add(recordId);
+      }
+    });
+  }
+
+  void _exitBulkSelection() {
+    setState(() {
+      _isBulkSelectionMode = false;
+      _selectedRecordIds.clear();
+    });
+  }
+
+  void _toggleRecordSelection(dynamic record, bool selected) {
+    final recordId = record['id']?.toString();
+    if (recordId == null) return;
+
+    setState(() {
+      if (selected) {
+        _selectedRecordIds.add(recordId);
+      } else {
+        _selectedRecordIds.remove(recordId);
+      }
     });
   }
 
@@ -290,46 +335,77 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
               }
 
               final record = filteredRecords[index];
+              final recordId = record['id']?.toString();
+              final isSelected =
+                  recordId != null && _selectedRecordIds.contains(recordId);
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primaryContainer
+                    : null,
                 child: ListTile(
+                  leading: _isBulkSelectionMode
+                      ? Checkbox(
+                          key: ValueKey('bulk-select-$recordId'),
+                          value: isSelected,
+                          onChanged: _isBulkDeleting
+                              ? null
+                              : (selected) => _toggleRecordSelection(
+                                    record,
+                                    selected ?? false,
+                                  ),
+                        )
+                      : null,
                   title: Text(
                     '${record['type']} • ${record['name']}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(record['content']),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Tooltip(
-                        message: context.l10n.text(
-                          record['proxied'] ? 'disableProxy' : 'enableProxy',
+                  trailing: _isBulkSelectionMode
+                      ? null
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Tooltip(
+                              message: context.l10n.text(
+                                record['proxied']
+                                    ? 'disableProxy'
+                                    : 'enableProxy',
+                              ),
+                              child: Switch(
+                                value: record['proxied'],
+                                onChanged: record['proxiable']
+                                    ? (val) => _toggleProxy(record, val)
+                                    : null,
+                                activeThumbColor: AppColors.primary,
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: context.l10n.text('copyRecord'),
+                              icon: const Icon(Icons.content_copy),
+                              onPressed: () => _showRecordDialog(record, true),
+                            ),
+                            IconButton(
+                              tooltip: context.l10n.text('editRecord'),
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _showRecordDialog(record),
+                            ),
+                            IconButton(
+                              tooltip: context.l10n.text('deleteRecordAction'),
+                              icon: const Icon(
+                                Icons.delete,
+                                color: AppColors.error,
+                              ),
+                              onPressed: () => _confirmDeleteRecord(record),
+                            ),
+                          ],
                         ),
-                        child: Switch(
-                          value: record['proxied'],
-                          onChanged: record['proxiable']
-                              ? (val) => _toggleProxy(record, val)
-                              : null,
-                          activeColor: AppColors.primary,
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: context.l10n.text('copyRecord'),
-                        icon: const Icon(Icons.content_copy),
-                        onPressed: () => _showRecordDialog(record, true),
-                      ),
-                      IconButton(
-                        tooltip: context.l10n.text('editRecord'),
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _showRecordDialog(record),
-                      ),
-                      IconButton(
-                        tooltip: context.l10n.text('deleteRecordAction'),
-                        icon: const Icon(Icons.delete, color: AppColors.error),
-                        onPressed: () => _confirmDeleteRecord(record),
-                      ),
-                    ],
-                  ),
+                  onTap: _isBulkSelectionMode && !_isBulkDeleting
+                      ? () => _toggleRecordSelection(record, !isSelected)
+                      : null,
+                  onLongPress: _isBulkDeleting
+                      ? null
+                      : () => _enterBulkSelection(record),
                 ),
               );
             },
@@ -366,6 +442,125 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
     }
   }
 
+  Future<void> _confirmBulkDelete() async {
+    final selectedRecords = _records
+        .where(
+            (record) => _selectedRecordIds.contains(record['id']?.toString()))
+        .toList();
+
+    if (selectedRecords.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.text('selectRecordsToDelete'))),
+      );
+      return;
+    }
+
+    final desiredDialogHeight = 60.0 + (selectedRecords.length * 64.0);
+    final availableDialogHeight = MediaQuery.sizeOf(context).height * 0.5;
+    final maxDialogHeight =
+        availableDialogHeight < 400.0 ? availableDialogHeight : 400.0;
+    final dialogHeight = desiredDialogHeight < maxDialogHeight
+        ? desiredDialogHeight
+        : maxDialogHeight;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.text('deleteConfirmTitle')),
+        content: SizedBox(
+          width: 520,
+          height: dialogHeight,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(context.l10n.text('bulkDeleteConfirmMessage')),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: selectedRecords.length,
+                  separatorBuilder: (_, __) => const Divider(height: 16),
+                  itemBuilder: (_, index) {
+                    final record = selectedRecords[index];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${record['type']} • ${record['name']}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text('${record['content']}'),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.l10n.text('no')),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(
+              context.l10n.text('yes'),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    if (confirm != true) {
+      _exitBulkSelection();
+      return;
+    }
+
+    await _deleteSelectedRecords(selectedRecords);
+  }
+
+  Future<void> _deleteSelectedRecords(List<dynamic> records) async {
+    setState(() => _isBulkDeleting = true);
+    final errors = <Object>[];
+
+    for (final record in records) {
+      try {
+        await (widget.recordDeleter ?? ApiService.deleteDnsRecord)(
+          widget.zoneId,
+          record['id'].toString(),
+        );
+      } catch (error) {
+        errors.add(error);
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _isBulkDeleting = false;
+      _isBulkSelectionMode = false;
+      _selectedRecordIds.clear();
+    });
+    await _loadRecords();
+
+    if (mounted && errors.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.text(
+            'bulkDeleteError',
+            values: {'count': '${errors.length}'},
+          )),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   Future<void> _toggleProxy(dynamic record, bool value) async {
     try {
       await ApiService.updateDnsRecord(widget.zoneId, record['id'], {
@@ -386,7 +581,10 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
 
   Future<void> _deleteRecord(String recordId) async {
     try {
-      await ApiService.deleteDnsRecord(widget.zoneId, recordId);
+      await (widget.recordDeleter ?? ApiService.deleteDnsRecord)(
+        widget.zoneId,
+        recordId,
+      );
       _loadRecords();
     } catch (e) {
       if (mounted) {
@@ -644,10 +842,14 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
           });
         },
         const SingleActivator(LogicalKeyboardKey.keyN, control: true): () {
-          _showRecordDialog();
+          if (!_isBulkSelectionMode) {
+            _showRecordDialog();
+          }
         },
         const SingleActivator(LogicalKeyboardKey.escape): () {
-          if (_isSearching) {
+          if (_isBulkSelectionMode && !_isBulkDeleting) {
+            _exitBulkSelection();
+          } else if (_isSearching) {
             setState(() {
               _isSearching = false;
               _searchQuery = '';
@@ -691,6 +893,20 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                 },
               ),
               IconButton(
+                key: const ValueKey('bulk-delete-mode-button'),
+                tooltip: context.l10n.text(
+                  _isBulkSelectionMode
+                      ? 'cancelBulkSelection'
+                      : 'selectRecordsToDeleteAction',
+                ),
+                icon: const Icon(Icons.delete),
+                onPressed: _isBulkDeleting
+                    ? null
+                    : _isBulkSelectionMode
+                        ? _exitBulkSelection
+                        : _enterBulkSelection,
+              ),
+              IconButton(
                 tooltip: context.l10n.text('purgeCache'),
                 icon: _isPurgingCache
                     ? const SizedBox(
@@ -721,10 +937,29 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
               Expanded(child: _buildRecordsBody()),
             ],
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _showRecordDialog(),
-            child: const Icon(Icons.add),
-          ),
+          floatingActionButton: _isBulkSelectionMode
+              ? FloatingActionButton(
+                  key: const ValueKey('bulk-delete-fab'),
+                  tooltip: context.l10n.text('deleteSelectedRecords'),
+                  backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white,
+                  onPressed: _isBulkDeleting ? null : _confirmBulkDelete,
+                  child: _isBulkDeleting
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.delete),
+                )
+              : FloatingActionButton(
+                  key: const ValueKey('add-record-fab'),
+                  onPressed: () => _showRecordDialog(),
+                  child: const Icon(Icons.add),
+                ),
         ),
       ),
     );
