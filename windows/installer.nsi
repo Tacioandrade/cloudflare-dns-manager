@@ -15,7 +15,7 @@ XPStyle on
 !endif
 
 !define APP_NAME "Cloudflare DNS Manager"
-!define APP_PUBLISHER "MultiTI Consultoria e Soluções em Tecnologia"
+!define APP_PUBLISHER "MultiTI Consultoria e Solucoes em Tecnologia"
 !define APP_EXE "cloudflare_dns.exe"
 !define APP_URL "https://github.com/Tacioandrade/cloudflare-dns-manager"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\CloudflareDNSManager"

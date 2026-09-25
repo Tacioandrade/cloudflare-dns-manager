@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -29,11 +30,14 @@ jobs:
           import re
           import sys
 
-          message = os.environ["COMMIT_MESSAGE"].splitlines()[0].strip()
-          trigger = re.match(r"(?i)^vers[aã]o\s+([0-9]+\.[0-9]+\.[0-9]+)\b", message)
+          event_name = os.environ.get("GITHUB_EVENT_NAME", "")
+          raw_message = os.environ.get("COMMIT_MESSAGE") or ""
+          first_line = raw_message.splitlines()[0].strip() if raw_message.strip() else ""
+          manual_trigger = event_name == "workflow_dispatch"
+          commit_trigger = bool(re.match(r"(?i)^vers[aã]o\s+([0-9]+\.[0-9]+\.[0-9]+)\b", first_line))
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              if not trigger:
+              if not (manual_trigger or commit_trigger):
                   output.write("should_release=false\n")
                   output.write("version=\n")
                   sys.exit(0)
@@ -500,6 +504,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.detect-version.outputs.version }}
         run: |
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release delete "$VERSION" --yes --cleanup-tag
+          fi
           gh release create "$VERSION" dist/* \
             --target "$GITHUB_SHA" \
             --title "$VERSION" \
