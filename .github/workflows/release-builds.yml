@@ -16,7 +16,10 @@ jobs:
       should_release: ${{ steps.version.outputs.should_release }}
       version: ${{ steps.version.outputs.version }}
     steps:
-      - name: Read commit message
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read commit message and app version
         id: version
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
@@ -24,17 +27,26 @@ jobs:
           python3 - <<'PY'
           import os
           import re
+          import sys
 
           message = os.environ["COMMIT_MESSAGE"].splitlines()[0].strip()
-          match = re.match(r"(?i)^vers[aã]o\s+([0-9]+\.[0-9]+\.[0-9]+)\b", message)
+          trigger = re.match(r"(?i)^vers[aã]o\s+([0-9]+\.[0-9]+\.[0-9]+)\b", message)
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              if match:
-                  output.write("should_release=true\n")
-                  output.write(f"version={match.group(1)}\n")
-              else:
+              if not trigger:
                   output.write("should_release=false\n")
                   output.write("version=\n")
+                  sys.exit(0)
+
+              with open("pubspec.yaml", "r", encoding="utf-8") as pubspec:
+                  content = pubspec.read()
+              version_match = re.search(r"(?m)^version:\s*([0-9]+\.[0-9]+\.[0-9]+)", content)
+              if not version_match:
+                  print("Could not find version in pubspec.yaml", file=sys.stderr)
+                  sys.exit(1)
+
+              output.write("should_release=true\n")
+              output.write(f"version={version_match.group(1)}\n")
           PY
 
   build-linux:
@@ -315,12 +327,7 @@ jobs:
           if (Test-Path package) {
             Remove-Item -Recurse -Force package
           }
-          if (Test-Path installer) {
-            Remove-Item -Recurse -Force installer
-          }
-          Remove-Item -Path installer.7z, installer-config.txt -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force -Path package\cloudflare-update-dns | Out-Null
-          New-Item -ItemType Directory -Force -Path installer | Out-Null
           Copy-Item -Path build\windows\x64\runner\Release\* -Destination package\cloudflare-update-dns -Recurse -Force
           Copy-Item -Path windows\runner\resources\app_icon.ico -Destination package\cloudflare-update-dns\app_icon.ico -Force
 
@@ -364,91 +371,28 @@ jobs:
             -DestinationPath "dist\cloudflare-dns-manager-windows-$env:VERSION`_portable.zip" `
             -Force
 
-          Copy-Item -Path package\cloudflare-update-dns\* -Destination installer -Recurse -Force
-
-          $installScript = @'
-          $ErrorActionPreference = "Stop"
-
-          $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-          $principal = New-Object Security.Principal.WindowsPrincipal($identity)
-          $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-          if (-not $isAdmin) {
-            Start-Process `
-              -FilePath "powershell.exe" `
-              -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$PSCommandPath`"") `
-              -Verb RunAs `
-              -Wait
-            exit
-          }
-
-          $installDir = Join-Path $env:ProgramFiles "Cloudflare DNS Manager"
-          $shortcutPath = "C:\Users\Default\Cloudflare DNS Manager.lnk"
-          $sourceDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-          $exePath = Join-Path $installDir "cloudflare_dns.exe"
-          $iconPath = Join-Path $installDir "app_icon.ico"
-
-          New-Item -ItemType Directory -Force -Path $installDir | Out-Null
-          Copy-Item -Path (Join-Path $sourceDir "*") -Destination $installDir -Recurse -Force
-          Remove-Item -Path (Join-Path $installDir "install.ps1") -Force -ErrorAction SilentlyContinue
-
-          $shell = New-Object -ComObject WScript.Shell
-          $shortcut = $shell.CreateShortcut($shortcutPath)
-          $shortcut.TargetPath = $exePath
-          $shortcut.WorkingDirectory = $installDir
-          $shortcut.IconLocation = $iconPath
-          $shortcut.Description = "Cloudflare DNS Manager"
-          $shortcut.Save()
-          '@
-          Set-Content -Path installer\install.ps1 -Value $installScript -Encoding UTF8
-
-          $sfxConfig = @'
-          ;!@Install@!UTF-8!
-          Title="Cloudflare DNS Manager"
-          RunProgram="powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1"
-          ;!@InstallEnd@!
-          '@
-          Set-Content -Path installer-config.txt -Value $sfxConfig -Encoding UTF8
-
-          $sevenZipCommand = Get-Command 7z.exe -ErrorAction SilentlyContinue
-          if ($sevenZipCommand) {
-            $sevenZip = $sevenZipCommand.Source
+          $makensisCommand = Get-Command makensis.exe -ErrorAction SilentlyContinue
+          if ($makensisCommand) {
+            $makensis = $makensisCommand.Source
           } else {
-            $sevenZip = "$env:ProgramFiles\7-Zip\7z.exe"
-            if (-not (Test-Path $sevenZip)) {
-              $sevenZip = "${env:ProgramFiles(x86)}\7-Zip\7z.exe"
+            $makensis = "${env:ProgramFiles(x86)}\NSIS\makensis.exe"
+            if (-not (Test-Path $makensis)) {
+              $makensis = "$env:ProgramFiles\NSIS\makensis.exe"
             }
           }
-          if (-not (Test-Path $sevenZip)) {
-            throw "7-Zip executable was not found on the runner."
+          if (-not (Test-Path $makensis)) {
+            throw "NSIS compiler (makensis.exe) was not found on the runner."
           }
 
-          $sfxCandidates = @(
-            "$env:ProgramFiles\7-Zip\7z.sfx",
-            "$env:ProgramFiles\7-Zip\7zCon.sfx",
-            "${env:ProgramFiles(x86)}\7-Zip\7z.sfx",
-            "${env:ProgramFiles(x86)}\7-Zip\7zCon.sfx"
-          )
-          $sfxModule = $sfxCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $sfxModule) {
-            throw "7-Zip SFX module was not found on the runner."
+          & $makensis `
+            "/DVERSION=$env:VERSION" `
+            "/DSOURCE_DIR=$PWD\package\cloudflare-update-dns" `
+            "/DOUTPUT_DIR=$PWD\dist" `
+            "/DOUTPUT_FILE=cloudflare-dns-manager-windows-$env:VERSION.exe" `
+            "windows\installer.nsi" | Out-Host
+          if ($LASTEXITCODE -ne 0) {
+            throw "makensis.exe failed with exit code $LASTEXITCODE"
           }
-
-          Push-Location installer
-          & $sevenZip a -t7z ..\installer.7z .\* | Out-Host
-          Pop-Location
-
-          $installerExe = "dist\cloudflare-dns-manager-windows-$env:VERSION.exe"
-          $output = [System.IO.File]::Create($installerExe)
-          foreach ($file in @($sfxModule, "installer-config.txt", "installer.7z")) {
-            $inputPath = (Resolve-Path $file).ProviderPath
-            $input = [System.IO.File]::OpenRead($inputPath)
-            try {
-              $input.CopyTo($output)
-            } finally {
-              $input.Dispose()
-            }
-          }
-          $output.Dispose()
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4

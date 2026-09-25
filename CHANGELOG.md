@@ -8,6 +8,9 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 ### Adicionado
 - Adicionada exclusão em lote de registros DNS, com seleção por botão ou toque longo, confirmação detalhada e recarga automática da listagem.
 
+### Corrigido
+- Instalador do Windows passou a ser gerado com Inno Setup, instalando em `%LOCALAPPDATA%\Programs` sem exigir privilégios de administrador, no lugar do executável autoextraível 7-Zip anterior.
+
 ## [2.0.10] - 2026-09-16
 ### Corrigido
 - Liberados sublinhados e os demais caracteres válidos em nomes DNS nos destinos de registros CNAME, MX, NS e SRV, mantendo os limites de tamanho definidos para nomes e rótulos DNS.
