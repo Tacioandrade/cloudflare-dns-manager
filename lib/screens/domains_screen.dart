@@ -5,12 +5,21 @@ import '../core/constants.dart';
 import '../data/api.dart';
 import '../data/local_storage.dart';
 import 'dns_editor_screen.dart';
+import 'add_domain_screen.dart';
+import 'pending_domain_screen.dart';
 import 'settings_screen.dart';
 import 'login_screen.dart';
 import '../l10n/app_localizations.dart';
 
 class DomainsScreen extends StatefulWidget {
-  const DomainsScreen({super.key});
+  const DomainsScreen({
+    super.key,
+    this.zonesStream,
+    this.zoneCreationChecker,
+  });
+
+  final Stream<dynamic> Function()? zonesStream;
+  final Future<bool> Function(Map<String, dynamic> zone)? zoneCreationChecker;
 
   @override
   State<DomainsScreen> createState() => _DomainsScreenState();
@@ -18,7 +27,6 @@ class DomainsScreen extends StatefulWidget {
 
 class _DomainsScreenState extends State<DomainsScreen> {
   static const double _footerHeight = 88;
-  static const double _footerActionClearance = 88;
 
   List<dynamic> _zones = [];
   bool _isLoading = true;
@@ -26,6 +34,7 @@ class _DomainsScreenState extends State<DomainsScreen> {
   String? _error;
   String _searchQuery = '';
   bool _isSearching = false;
+  bool _canCreateZones = false;
   final FocusNode _searchFocusNode = FocusNode();
   int _loadId = 0;
 
@@ -48,6 +57,7 @@ class _DomainsScreenState extends State<DomainsScreen> {
       _tokenNotConfigured = false;
       _error = null;
       _zones = [];
+      _canCreateZones = false;
     });
 
     final token = await LocalStorage.getToken();
@@ -62,14 +72,26 @@ class _DomainsScreenState extends State<DomainsScreen> {
     }
 
     try {
-      await for (final zone in ApiService.streamZones()) {
+      final zonesStream =
+          widget.zonesStream?.call() ?? ApiService.streamZones();
+      await for (final zone in zonesStream) {
         if (!mounted || loadId != _loadId) return;
         setState(() {
           _zones.add(zone);
         });
       }
       if (!mounted || loadId != _loadId) return;
-      setState(() => _isLoading = false);
+      var canCreateZones = false;
+      if (_zones.isNotEmpty) {
+        final firstZone = Map<String, dynamic>.from(_zones.first as Map);
+        canCreateZones = await (widget.zoneCreationChecker?.call(firstZone) ??
+            ApiService.canCreateZones(firstZone));
+      }
+      if (!mounted || loadId != _loadId) return;
+      setState(() {
+        _canCreateZones = canCreateZones;
+        _isLoading = false;
+      });
     } catch (e) {
       if (!mounted || loadId != _loadId) return;
       setState(() {
@@ -94,6 +116,32 @@ class _DomainsScreenState extends State<DomainsScreen> {
   Future<void> _openSettings() async {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const SettingsScreen()),
+    );
+    _loadZones();
+  }
+
+  Future<void> _openAddDomain() async {
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const AccountSelectionScreen()),
+    );
+    if (created == true) _loadZones();
+  }
+
+  Future<void> _openZone(Map<String, dynamic> zone) async {
+    if (zone['status'] == 'active') {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => DnsEditorScreen(
+            zoneId: zone['id'].toString(),
+            zoneName: zone['name'].toString(),
+          ),
+        ),
+      );
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => PendingDomainScreen(zone: zone)),
     );
     _loadZones();
   }
@@ -172,9 +220,27 @@ class _DomainsScreenState extends State<DomainsScreen> {
             ],
           ),
           body: _buildBody(),
-          floatingActionButton: FloatingActionButton(
-            onPressed: _loadZones,
-            child: const Icon(Icons.refresh),
+          floatingActionButton: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_canCreateZones) ...[
+                FloatingActionButton(
+                  key: const ValueKey('addDomainButton'),
+                  heroTag: 'addDomain',
+                  tooltip: context.l10n.text('connectDomain'),
+                  onPressed: _openAddDomain,
+                  child: const Icon(Icons.add),
+                ),
+                const SizedBox(width: 12),
+              ],
+              FloatingActionButton(
+                key: const ValueKey('refreshDomainsButton'),
+                heroTag: 'refreshDomains',
+                tooltip: context.l10n.text('refreshDomains'),
+                onPressed: _loadZones,
+                child: const Icon(Icons.refresh),
+              ),
+            ],
           ),
         ),
       ),
@@ -327,13 +393,43 @@ class _DomainsScreenState extends State<DomainsScreen> {
                     style: textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 16),
+                  Text(
+                    l10n.text('tokenProfileExistingTitle'),
+                    style: textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
                   permission(
                     l10n.text('tokenPermissionZone'),
                     '${l10n.text('tokenPermissionCachePurge')} => ${l10n.text('tokenPermissionClear')}',
                   ),
                   permission(
                     l10n.text('tokenPermissionZone'),
+                    '${l10n.text('tokenPermissionZoneSettings')} => ${l10n.text('tokenPermissionEdit')}',
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.text('tokenProfileAddTitle'),
+                    style: textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.text('tokenProfileAddDescription'),
+                    style: textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  permission(
+                    l10n.text('tokenPermissionZone'),
                     'DNS => ${l10n.text('tokenPermissionEdit')}',
+                  ),
+                  permission(
+                    l10n.text('tokenZoneResources'),
+                    '${l10n.text('tokenPermissionInclude')} => ${l10n.text('tokenAllZones')}',
+                  ),
+                  permission(
+                    l10n.text('tokenPermissionUser'),
+                    '${l10n.text('tokenPermissionMemberships')} => ${l10n.text('tokenPermissionRead')}',
                   ),
                   const SizedBox(height: 16),
                   Align(
@@ -356,13 +452,14 @@ class _DomainsScreenState extends State<DomainsScreen> {
 
   Widget _buildZonesList() {
     final safeBottom = MediaQuery.viewPaddingOf(context).bottom;
+    final footerActionClearance = _canCreateZones ? 156.0 : 88.0;
     final footer = SizedBox(
       height: _footerHeight + safeBottom,
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           16,
           16,
-          _footerActionClearance,
+          footerActionClearance,
           16 + safeBottom,
         ),
         child: Center(
@@ -423,7 +520,9 @@ class _DomainsScreenState extends State<DomainsScreen> {
                   return footer;
                 }
 
-                final zone = filteredZones[index];
+                final zone = Map<String, dynamic>.from(
+                  filteredZones[index] as Map,
+                );
                 final isActive = zone['status'] == 'active';
 
                 return Card(
@@ -437,16 +536,7 @@ class _DomainsScreenState extends State<DomainsScreen> {
                       isActive ? Icons.check_circle : Icons.pending,
                       color: isActive ? AppColors.success : Colors.grey,
                     ),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => DnsEditorScreen(
-                            zoneId: zone['id'],
-                            zoneName: zone['name'],
-                          ),
-                        ),
-                      );
-                    },
+                    onTap: () => _openZone(zone),
                   ),
                 );
               },

@@ -8,6 +8,17 @@ comando Docker. A obrigatoriedade está registrada no `AGENTS.md`.
 Reutilizar as imagens já presentes na máquina, manter builds reproduzíveis e
 evitar baixar ou construir contêineres que não sejam necessários para a tarefa.
 
+## Identidade visual e temas
+
+- Em novas implementações, mensagens de erro, alerta e informação devem usar
+  cores derivadas da identidade visual do Cloudflare DNS Manager, priorizando
+  `AppColors.primary`, `AppColors.error` e as superfícies definidas pelo tema.
+- No modo escuro, não usar diretamente cores padrão do Material que introduzam
+  tons alheios à identidade visual, como o azul de `secondaryContainer`.
+- Sempre garantir contraste adequado entre fundo, ícones e texto nos temas
+  claro e escuro. Um comportamento já adequado no tema claro deve ser
+  preservado quando a correção for específica do modo escuro.
+
 ## Imagens e contêineres autorizados
 
 ### Flutter 3.38.10

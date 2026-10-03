@@ -4,6 +4,17 @@ Projet sur GitHub : [https://github.com/Tacioandrade/cloudflare-update-dns/](htt
 
 Toutes les modifications notables de ce projet seront documentées dans ce fichier.
 
+## [Non publié]
+### Ajouté
+- Ajout de l’option permettant d’ajouter un nouveau domaine à l’un des comptes Cloudflare accessibles à l’utilisateur.
+- Les domaines en attente affichent désormais leurs serveurs de noms attribués, permettent de les copier et de demander une nouvelle vérification d’activation.
+- L’écran d’ajout de domaine avertit désormais que seuls les comptes ayant au moins un domaine enregistré seront affichés lorsque le jeton ne dispose pas de l’autorisation `Memberships → Read`.
+- Ajout d’une recherche par nom ou identifiant dans l’écran de sélection du compte lors de l’ajout d’un domaine, avec les raccourcis `Ctrl+F` et `Esc`.
+- L’option d’ajout d’un domaine est désormais affichée uniquement lorsque le jeton dispose de l’autorisation appropriée pour créer des zones.
+- Amélioration de la documentation des autorisations nécessaires à l’utilisation de l’application.
+### Corrigé
+- Réorganisation des instructions relatives aux jetons : le profil de base pour les zones existantes utilise Zone Edit et Cache Purge, tandis que DNS Edit appartient au profil qui ajoute des domaines et gère leurs enregistrements DNS.
+
 ## [2.0.11] - 2026-09-24
 ### Ajouté
 - Ajout de la suppression groupée des enregistrements DNS, avec sélection par le bouton de la barre d’outils ou par appui long, confirmation détaillée et rechargement automatique de la liste.

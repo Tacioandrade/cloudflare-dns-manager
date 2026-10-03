@@ -26,7 +26,22 @@ En el primer acceso crea una contraseña. Cada nueva sesión requiere autenticac
 3. Pega tu [token de API de Cloudflare](https://dash.cloudflare.com/profile/api-tokens).
 4. Selecciona **Probar** y luego **Guardar**.
 
-Para purgar la caché CDN, crea un token personalizado con permisos **Zone / Cache Purge / Purge** y **Zone / DNS / Edit**.
+### Token de API solo para administrar dominios registrados
+
+Para listar dominios existentes, comprobar la activación y limpiar la caché CDN, usa:
+
+- **Zona / Zone → Zona / Zone → Editar / Edit** para listar zonas y volver a comprobar la activación de zonas pendientes.
+- **Zona / Zone → Purga de caché / Cache Purge → Purgar / Purge** para limpiar la caché CDN.
+
+Este perfil no permite crear, modificar ni eliminar registros DNS.
+
+### Token de API para añadir dominios y administrar los existentes
+
+Usa los permisos anteriores y añade:
+
+- **Zona / Zone → DNS → Editar / Edit** para listar, crear, modificar y eliminar registros DNS.
+- **Recursos de zona / Zone resources → Incluir / Include → Todas las zonas / All zones**.
+- **Usuario / User → Membresías / Memberships → Lectura / Read**, recomendado para listar todas las cuentas accesibles, incluidas las que no tienen dominios.
 
 ## Arquitectura
 

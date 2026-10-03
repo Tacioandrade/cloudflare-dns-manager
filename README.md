@@ -36,14 +36,26 @@ A sessao autenticada fica apenas em memoria. A senha do app nao e salva em texto
 
 1. Faca login no aplicativo.
 2. Abra Configuracoes.
-3. Cole seu Cole seu [Cloudflare API Token](https://dash.cloudflare.com/profile/api-tokens)
+3. Cole seu [Cloudflare API Token](https://dash.cloudflare.com/profile/api-tokens)
 4. Clique em Testar para validar.
 5. Clique em Salvar.
 
-Para usar a limpeza de Cache CDN, crie um token customizado com as seguintes permissoes:
+### Token de API apenas para administrar dominios cadastrados
 
-- Zona / Zone => Limpeza do cache / Cache Purge => Limpar / Clear
-- Zona / Zone => DNS => Editar / Edit
+Para listar dominios existentes, verificar a ativacao e limpar o cache CDN, crie um token customizado com estas permissoes:
+
+- Zona / Zone => Zona / Zone => Editar / Edit: lista as zonas e permite solicitar uma nova verificacao de ativacao para zonas pendentes.
+- Zona / Zone => Limpeza do cache / Cache Purge => Purgar / Purge: permite limpar o cache CDN.
+
+Este perfil nao permite criar, alterar ou excluir registros DNS.
+
+### Token de API para adicionar novos dominios e administrar existentes
+
+Use as permissoes anteriores e acrescente:
+
+- Zona / Zone => DNS => Editar / Edit, para listar, criar, alterar e excluir registros DNS.
+- Recursos de zona / Zone resources => Incluir / Include => Todas as zonas / All zones.
+- Usuario / User => Associacoes / Memberships => Leitura / Read, recomendada para listar todas as contas acessiveis, inclusive as que ainda nao possuem dominios.
 
 ## Arquitetura
 

@@ -4,6 +4,17 @@ Proyecto en GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](htt
 
 Todos los cambios destacables de este proyecto se documentarán en este archivo.
 
+## [Sin publicar]
+### Añadido
+- Se añadió la opción de agregar un nuevo dominio a una de las cuentas de Cloudflare accesibles para el usuario.
+- Los dominios pendientes ahora muestran sus servidores de nombres asignados, permiten copiarlos y solicitar una nueva comprobación de activación.
+- La pantalla para añadir un dominio ahora avisa que solo se mostrarán las cuentas con al menos un dominio registrado cuando el token no tenga el permiso `Memberships → Read`.
+- Se añadió la búsqueda por nombre o ID en la pantalla de selección de cuenta al añadir un dominio, incluidos los atajos `Ctrl+F` y `Esc`.
+- La opción para añadir un dominio ahora solo se muestra cuando el token tiene el permiso adecuado para crear zonas.
+- Se mejoró la documentación de los permisos necesarios para utilizar la aplicación.
+### Corregido
+- Se reorganizaron las instrucciones del token: el perfil básico para zonas existentes usa Zone Edit y Cache Purge, mientras que DNS Edit forma parte del perfil que añade dominios y administra sus registros DNS.
+
 ## [2.0.11] - 2026-09-24
 ### Añadido
 - Se añadió la eliminación por lotes de registros DNS, con selección mediante el botón de la barra de herramientas o una pulsación prolongada, confirmación detallada y recarga automática de la lista.

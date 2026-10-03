@@ -26,7 +26,22 @@
 3. 粘贴您的 [Cloudflare API 令牌](https://dash.cloudflare.com/profile/api-tokens)。
 4. 选择**测试**，然后选择**保存**。
 
-要清除 CDN 缓存，请创建具有 **Zone / Cache Purge / Purge** 和 **Zone / DNS / Edit** 权限的自定义令牌。
+### 仅用于管理已注册域名的 API 令牌
+
+要列出现有域名、检查激活状态并清除 CDN 缓存，请配置：
+
+- **区域 / Zone → 区域 / Zone → 编辑 / Edit**，用于列出区域并重新检查待激活区域。
+- **区域 / Zone → 清除缓存 / Cache Purge → 清除 / Purge**，用于清除 CDN 缓存。
+
+此配置不允许创建、修改或删除 DNS 记录。
+
+### 用于添加新域名并管理现有域名的 API 令牌
+
+使用上述权限，并添加：
+
+- **区域 / Zone → DNS → 编辑 / Edit**，用于列出、创建、修改和删除 DNS 记录。
+- **区域资源 / Zone resources → 包括 / Include → 所有区域 / All zones**。
+- **用户 / User → 成员关系 / Memberships → 读取 / Read**，建议用于列出所有可访问账户，包括没有域名的账户。
 
 ## 架构
 

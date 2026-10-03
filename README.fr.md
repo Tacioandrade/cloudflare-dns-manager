@@ -26,7 +26,22 @@ Lors de la première utilisation, créez un mot de passe. Chaque nouvelle sessio
 3. Collez votre [jeton API Cloudflare](https://dash.cloudflare.com/profile/api-tokens).
 4. Sélectionnez **Tester**, puis **Enregistrer**.
 
-Pour purger le cache CDN, créez un jeton personnalisé avec les permissions **Zone / Cache Purge / Purge** et **Zone / DNS / Edit**.
+### Jeton API uniquement pour gérer les domaines enregistrés
+
+Pour répertorier les domaines existants, vérifier leur activation et vider le cache CDN, utilisez :
+
+- **Zone / Zone → Zone / Zone → Modifier / Edit** pour répertorier les zones et relancer la vérification d’activation des zones en attente.
+- **Zone / Zone → Purge du cache / Cache Purge → Purger / Purge** pour vider le cache CDN.
+
+Ce profil ne permet pas de créer, modifier ou supprimer des enregistrements DNS.
+
+### Jeton API pour ajouter des domaines et gérer les domaines existants
+
+Utilisez les autorisations ci-dessus et ajoutez :
+
+- **Zone / Zone → DNS → Modifier / Edit** pour répertorier, créer, modifier et supprimer des enregistrements DNS.
+- **Ressources de zone / Zone resources → Inclure / Include → Toutes les zones / All zones**.
+- **Utilisateur / User → Adhésions / Memberships → Lecture / Read**, recommandé pour répertorier tous les comptes accessibles, y compris ceux sans domaine.
 
 ## Architecture
 

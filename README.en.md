@@ -27,7 +27,22 @@ On first use, create an application password. Each new application session requi
 3. Paste your [Cloudflare API Token](https://dash.cloudflare.com/profile/api-tokens).
 4. Select **Test**, then **Save**.
 
-For CDN cache purging, create a custom token with **Zone / Cache Purge / Purge** and **Zone / DNS / Edit** permissions.
+### API Token only for managing registered domains
+
+To list existing domains, check activation, and clear the CDN cache, use:
+
+- **Zone / Zone / Edit** to list zones and rerun the activation check for pending zones.
+- **Zone / Cache Purge / Purge** to clear the CDN cache.
+
+This profile does not allow creating, updating, or deleting DNS records.
+
+### API Token for adding new domains and managing existing ones
+
+Use the permissions above and add:
+
+- **Zone / DNS / Edit** to list, create, update, and delete DNS records.
+- **Zone resources / Include / All zones**.
+- **User / Memberships / Read**, recommended to list every accessible account, including accounts without domains.
 
 ## Architecture
 
