@@ -16,6 +16,7 @@ GitHub のプロジェクト: [https://github.com/Tacioandrade/cloudflare-update
 ### 修正
 - トークンの案内を再構成しました。既存ゾーン向けの基本構成は Zone Edit と Cache Purge を使用し、DNS Edit はドメイン追加と DNS レコード管理を行う構成に含めます。
 - アイコンやメタデータを含む iOS/App Store 公開設定を修正しました。
+- Linux ビルドで C++ 依存関係が出す `deprecated-literal-operator` を警告扱いにし、他の警告に対する `-Werror` は維持しました。
 
 ## [2.0.11] - 2026-09-24
 ### 追加

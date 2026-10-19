@@ -16,6 +16,7 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 ### Corrigido
 - Reorganizada em todos os idiomas a orientação sobre tokens: o perfil básico para zonas existentes usa Zone Editar e Cache Purge, enquanto DNS Editar fica no perfil que adiciona domínios e administra seus registros DNS.
 - Corrigida a configuração de publicação para iOS/App Store, incluindo ícones e metadados.
+- Rebaixado para warning o aviso `deprecated-literal-operator` de dependência C++ no build Linux, sem desativar `-Werror` para os demais avisos.
 
 ## [2.0.11] - 2026-09-24
 ### Adicionado

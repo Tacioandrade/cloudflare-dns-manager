@@ -16,6 +16,7 @@ GitHub 上的项目：[https://github.com/Tacioandrade/cloudflare-update-dns/](h
 ### 修复
 - 重新整理令牌说明：现有区域的基本配置使用 Zone Edit 和 Cache Purge，而 DNS Edit 归入添加域名并管理其 DNS 记录的配置。
 - 修复 iOS/App Store 发布配置，包括应用图标和元数据。
+- 将 Linux 构建中 C++ 依赖项的 `deprecated-literal-operator` 提示降为警告，同时保留其他警告的 `-Werror` 设置。
 
 ## [2.0.11] - 2026-09-24
 ### 新增

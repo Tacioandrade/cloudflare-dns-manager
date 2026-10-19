@@ -16,6 +16,7 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 ### Corrigé
 - Réorganisation des instructions relatives aux jetons : le profil de base pour les zones existantes utilise Zone Edit et Cache Purge, tandis que DNS Edit appartient au profil qui ajoute des domaines et gère leurs enregistrements DNS.
 - Correction de la configuration de publication iOS/App Store, notamment des icônes et des métadonnées.
+- Rétrogradation en avertissement de `deprecated-literal-operator`, signalé dans une dépendance C++ lors de la compilation Linux, sans désactiver `-Werror` pour les autres avertissements.
 
 ## [2.0.11] - 2026-09-24
 ### Ajouté
