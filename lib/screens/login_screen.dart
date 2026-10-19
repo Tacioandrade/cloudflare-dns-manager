@@ -16,6 +16,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _passController = TextEditingController();
   bool _obscurePassword = true;
+  bool _authenticationInProgress = false;
 
   final LocalAuthentication auth = LocalAuthentication();
   bool _canCheckBiometrics = false;
@@ -52,10 +53,12 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _authenticate() async {
-    if (!_supportsBiometricAuth) return;
+    if (!_supportsBiometricAuth || _authenticationInProgress || !mounted) return;
+    final localizedReason = context.l10n.text('biometricReason');
+    setState(() => _authenticationInProgress = true);
     try {
       final authenticated = await auth.authenticate(
-        localizedReason: context.l10n.text('biometricReason'),
+        localizedReason: localizedReason,
         options: const AuthenticationOptions(
           stickyAuth: true,
           biometricOnly: false,
@@ -71,19 +74,33 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       debugPrint('Erro na autenticacao: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.text('passwordOperationFailed')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _authenticationInProgress = false);
     }
   }
 
-  void _login() async {
-    if (await LocalStorage.verifyAppPassword(_passController.text)) {
-      await LocalStorage.login();
-      if (mounted) {
+  Future<void> _login() async {
+    if (_authenticationInProgress) return;
+    final password = _passController.text;
+    setState(() => _authenticationInProgress = true);
+    try {
+      final authenticated = await LocalStorage.verifyAppPassword(password);
+      if (!mounted) return;
+      if (authenticated) {
+        await LocalStorage.login();
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const DomainsScreen()),
         );
-      }
-    } else {
-      if (mounted) {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(context.l10n.text('credentialsInvalid')),
@@ -91,6 +108,18 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       }
+    } catch (e) {
+      debugPrint('Erro ao verificar a senha: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.text('passwordOperationFailed')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _authenticationInProgress = false);
     }
   }
 
@@ -124,7 +153,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _authenticate,
+                    onPressed:
+                        _authenticationInProgress ? null : _authenticate,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -147,6 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextField(
                   autofocus: true,
                   controller: _passController,
+                  enabled: !_authenticationInProgress,
                   obscureText: _obscurePassword,
                   onSubmitted: (_) => _login(),
                   decoration: InputDecoration(
@@ -172,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _login,
+                    onPressed: _authenticationInProgress ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,

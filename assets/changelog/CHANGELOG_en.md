@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 - Reorganized the token guidance: the basic profile for existing zones uses Zone Edit and Cache Purge, while DNS Edit is part of the profile that adds domains and manages their DNS records.
 - Fixed iOS/App Store publishing configuration, including app icons and metadata.
 - Downgraded the Linux build's `deprecated-literal-operator` warning from a C++ dependency without disabling `-Werror` for other warnings.
+- Moved local password creation and verification calculations to an isolate on native platforms, preserving compatibility with existing password hashes.
+- Prevented simultaneous submissions during password setup, login, password changes, and reauthentication; failures now show feedback and allow another attempt.
 
 ## [2.0.11] - 2026-09-24
 ### Added

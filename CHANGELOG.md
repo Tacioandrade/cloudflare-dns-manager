@@ -17,6 +17,8 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 - Reorganizada em todos os idiomas a orientação sobre tokens: o perfil básico para zonas existentes usa Zone Editar e Cache Purge, enquanto DNS Editar fica no perfil que adiciona domínios e administra seus registros DNS.
 - Corrigida a configuração de publicação para iOS/App Store, incluindo ícones e metadados.
 - Rebaixado para warning o aviso `deprecated-literal-operator` de dependência C++ no build Linux, sem desativar `-Werror` para os demais avisos.
+- Movido o cálculo de criação e verificação da senha local para um isolate nas plataformas nativas, preservando a compatibilidade com hashes existentes.
+- Evitadas submissões simultâneas nos fluxos de cadastro, login, troca de senha e reautenticação; falhas agora exibem uma mensagem e permitem nova tentativa.
 
 ## [2.0.11] - 2026-09-24
 ### Adicionado

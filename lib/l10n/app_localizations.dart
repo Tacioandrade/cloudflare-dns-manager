@@ -176,6 +176,8 @@ class AppLocalizations {
       'changelogLoadError': 'Unable to load the changelog.\nDetails: {error}',
       'unableOpenLink': 'Unable to open the link.',
       'credentialsInvalid': 'Invalid credentials!',
+      'passwordOperationFailed':
+          'Unable to process the password. Please try again.',
       'confirmIdentity': 'Confirm your identity',
       'tokenRevealAuthenticationDescription':
           'Authenticate before viewing or copying the Cloudflare API Token.',
@@ -366,6 +368,8 @@ class AppLocalizations {
       'changelogLoadError': 'Erro ao carregar o changelog.\nDetalhes: {error}',
       'unableOpenLink': 'Não foi possível abrir o link.',
       'credentialsInvalid': 'Credenciais inválidas!',
+      'passwordOperationFailed':
+          'Não foi possível processar a senha. Tente novamente.',
       'confirmIdentity': 'Confirme sua identidade',
       'tokenRevealAuthenticationDescription':
           'Autentique-se antes de visualizar ou copiar o Token da API Cloudflare.',
@@ -557,6 +561,8 @@ class AppLocalizations {
           'Impossible de charger le journal des modifications.\nDétails : {error}',
       'unableOpenLink': 'Impossible d’ouvrir le lien.',
       'credentialsInvalid': 'Identifiants invalides !',
+      'passwordOperationFailed':
+          'Impossible de traiter le mot de passe. Réessayez.',
       'confirmIdentity': 'Confirmez votre identité',
       'tokenRevealAuthenticationDescription':
           'Authentifiez-vous avant d’afficher ou de copier le jeton API Cloudflare.',
@@ -756,6 +762,8 @@ class AppLocalizations {
           'No se pudo cargar el registro de cambios.\nDetalles: {error}',
       'unableOpenLink': 'No se pudo abrir el enlace.',
       'credentialsInvalid': '¡Credenciales inválidas!',
+      'passwordOperationFailed':
+          'No se pudo procesar la contraseña. Inténtalo de nuevo.',
       'biometricReason': 'Autentícate para administrar tus dominios DNS',
       'loginBiometric': 'INICIAR SESIÓN CON BIOMETRÍA',
       'usePassword': 'Usar contraseña en su lugar',
@@ -932,6 +940,7 @@ class AppLocalizations {
       'changelogLoadError': '无法加载更新日志。\n详情：{error}',
       'unableOpenLink': '无法打开链接。',
       'credentialsInvalid': '凭据无效！',
+      'passwordOperationFailed': '无法处理密码。请重试。',
       'biometricReason': '请验证身份以管理您的 DNS 域名',
       'loginBiometric': '使用生物识别登录',
       'usePassword': '改用密码',
@@ -1108,6 +1117,8 @@ class AppLocalizations {
       'changelogLoadError': '変更履歴を読み込めません。\n詳細：{error}',
       'unableOpenLink': 'リンクを開けません。',
       'credentialsInvalid': '認証情報が無効です！',
+      'passwordOperationFailed':
+          'パスワードを処理できませんでした。もう一度お試しください。',
       'biometricReason': 'DNS ドメインを管理するために認証してください',
       'loginBiometric': '生体認証でログイン',
       'usePassword': '代わりにパスワードを使用',

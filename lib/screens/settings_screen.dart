@@ -36,6 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _obscureNewPass = true;
   bool _obscureConfirmPass = true;
   bool _tokenAuthenticationInProgress = false;
+  bool _passwordChangeInProgress = false;
 
   final LocalAuthentication _localAuthentication = LocalAuthentication();
 
@@ -177,6 +178,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (authenticated && mounted) {
         setState(() => _obscureToken = false);
       }
+    } catch (e) {
+      debugPrint('Erro ao confirmar identidade para exibir o token: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.text('passwordOperationFailed')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     } finally {
       _tokenAuthenticationInProgress = false;
     }
@@ -196,51 +207,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _changePassword() async {
-    if (!await LocalStorage.verifyAppPassword(_currentPassController.text)) {
-      if (mounted) {
+    if (_passwordChangeInProgress) return;
+    final currentPassword = _currentPassController.text;
+    final newPassword = _newPassController.text;
+    final confirmation = _confirmPassController.text;
+    setState(() => _passwordChangeInProgress = true);
+    try {
+      final passwordIsValid =
+          await LocalStorage.verifyAppPassword(currentPassword);
+      if (!mounted) return;
+      if (!passwordIsValid) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(context.l10n.text('passwordIncorrect')),
             backgroundColor: AppColors.error,
           ),
         );
+        return;
       }
-      return;
-    }
 
-    if (_newPassController.text.trim().isEmpty) {
-      if (mounted) {
+      if (newPassword.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(context.l10n.text('newPasswordEmpty')),
               backgroundColor: AppColors.error),
         );
+        return;
       }
-      return;
-    }
 
-    if (_newPassController.text != _confirmPassController.text) {
-      if (mounted) {
+      if (newPassword != confirmation) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(context.l10n.text('passwordMismatchExclaim')),
               backgroundColor: AppColors.error),
         );
+        return;
       }
-      return;
-    }
 
-    await LocalStorage.saveAppPassword(_newPassController.text.trim());
-    _currentPassController.clear();
-    _newPassController.clear();
-    _confirmPassController.clear();
+      await LocalStorage.saveAppPassword(newPassword.trim());
+      if (!mounted) return;
+      _currentPassController.clear();
+      _newPassController.clear();
+      _confirmPassController.clear();
 
-    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(context.l10n.text('passwordUpdated')),
             backgroundColor: AppColors.success),
       );
+    } catch (e) {
+      debugPrint('Erro ao atualizar a senha: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.text('passwordOperationFailed')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _passwordChangeInProgress = false);
     }
   }
 
@@ -451,6 +477,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: _currentPassController,
+                  enabled: !_passwordChangeInProgress,
                   obscureText: _obscureCurrentPass,
                   decoration: InputDecoration(
                     labelText: context.l10n.text('currentPassword'),
@@ -470,6 +497,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: _newPassController,
+                  enabled: !_passwordChangeInProgress,
                   obscureText: _obscureNewPass,
                   decoration: InputDecoration(
                     labelText: context.l10n.text('newPassword'),
@@ -489,6 +517,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: _confirmPassController,
+                  enabled: !_passwordChangeInProgress,
                   obscureText: _obscureConfirmPass,
                   decoration: InputDecoration(
                     labelText: context.l10n.text('confirmNewPassword'),
@@ -510,7 +539,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _changePassword,
+                    onPressed:
+                        _passwordChangeInProgress ? null : _changePassword,
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary),
                     child: Text(context.l10n.text('updatePassword'),
@@ -567,26 +597,32 @@ class _TokenPasswordAuthenticationDialogState
     extends State<_TokenPasswordAuthenticationDialog> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _invalidPassword = false;
+  String? _verificationErrorKey;
   bool _isVerifying = false;
 
   Future<void> _verifyPassword() async {
     if (_isVerifying) return;
+    final password = _passwordController.text;
     setState(() {
       _isVerifying = true;
-      _invalidPassword = false;
+      _verificationErrorKey = null;
     });
 
-    final isValid = await widget.passwordVerifier(_passwordController.text);
-    if (!mounted) return;
-
-    if (isValid) {
-      Navigator.of(context).pop(true);
-    } else {
-      setState(() {
-        _isVerifying = false;
-        _invalidPassword = true;
-      });
+    try {
+      final isValid = await widget.passwordVerifier(password);
+      if (!mounted) return;
+      if (isValid) {
+        Navigator.of(context).pop(true);
+      } else {
+        setState(() => _verificationErrorKey = 'credentialsInvalid');
+      }
+    } catch (e) {
+      debugPrint('Erro ao confirmar a senha: $e');
+      if (mounted) {
+        setState(() => _verificationErrorKey = 'passwordOperationFailed');
+      }
+    } finally {
+      if (mounted) setState(() => _isVerifying = false);
     }
   }
 
@@ -615,9 +651,9 @@ class _TokenPasswordAuthenticationDialogState
             onSubmitted: (_) => _verifyPassword(),
             decoration: InputDecoration(
               labelText: context.l10n.text('password'),
-              errorText: _invalidPassword
-                  ? context.l10n.text('credentialsInvalid')
-                  : null,
+              errorText: _verificationErrorKey == null
+                  ? null
+                  : context.l10n.text(_verificationErrorKey!),
               border: const OutlineInputBorder(),
               prefixIcon: const Icon(Icons.lock),
               suffixIcon: IconButton(

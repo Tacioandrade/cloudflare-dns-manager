@@ -16,8 +16,10 @@ class _PasswordSetupScreenState extends State<PasswordSetupScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isSaving = false;
 
   Future<void> _savePassword() async {
+    if (_isSaving) return;
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
@@ -41,13 +43,26 @@ class _PasswordSetupScreenState extends State<PasswordSetupScreen> {
       return;
     }
 
-    await LocalStorage.saveAppPassword(password);
-    await LocalStorage.login();
-
-    if (mounted) {
+    setState(() => _isSaving = true);
+    try {
+      await LocalStorage.saveAppPassword(password);
+      await LocalStorage.login();
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const DomainsScreen()),
       );
+    } catch (e) {
+      debugPrint('Erro ao salvar a senha: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.text('passwordOperationFailed')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -77,6 +92,7 @@ class _PasswordSetupScreenState extends State<PasswordSetupScreen> {
               const SizedBox(height: 48),
               TextField(
                 controller: _passwordController,
+                enabled: !_isSaving,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: context.l10n.text('password'),
@@ -99,6 +115,7 @@ class _PasswordSetupScreenState extends State<PasswordSetupScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _confirmPasswordController,
+                enabled: !_isSaving,
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
                   labelText: context.l10n.text('confirmPassword'),
@@ -123,7 +140,7 @@ class _PasswordSetupScreenState extends State<PasswordSetupScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _savePassword,
+                  onPressed: _isSaving ? null : _savePassword,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,

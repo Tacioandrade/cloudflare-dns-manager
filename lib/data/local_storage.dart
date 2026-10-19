@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -53,7 +54,7 @@ class LocalStorage {
     if (storedHash == null || storedHash.isEmpty) {
       return false;
     }
-    return _verifyPasswordHash(password, storedHash);
+    return compute(_verifyPasswordHashInBackground, [password, storedHash]);
   }
 
   static Future<bool> hasAppPassword() async {
@@ -62,7 +63,7 @@ class LocalStorage {
   }
 
   static Future<void> saveAppPassword(String password) async {
-    final passwordHash = _hashPassword(password);
+    final passwordHash = await compute(_hashPassword, password);
     await _secureStorage.write(key: _keyAppPasswordHash, value: passwordHash);
   }
 
@@ -156,6 +157,10 @@ class LocalStorage {
     } on FormatException {
       return false;
     }
+  }
+
+  static bool _verifyPasswordHashInBackground(List<String> arguments) {
+    return _verifyPasswordHash(arguments[0], arguments[1]);
   }
 
   static Uint8List _randomBytes(int length) {

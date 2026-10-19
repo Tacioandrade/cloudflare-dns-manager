@@ -115,4 +115,39 @@ void main() {
         findsNothing);
     expect(passwordVerifierCalled, isFalse);
   });
+
+  testWidgets('keeps the token hidden when password verification fails',
+      (tester) async {
+    var storageAvailable = false;
+    await tester.pumpWidget(
+      appWithSettings(
+        SettingsScreen(
+          systemAuthenticator: (_) async => false,
+          passwordVerifier: (_) async {
+            if (!storageAvailable) throw StateError('secure storage unavailable');
+            return true;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('tokenVisibilityButton')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('tokenReauthenticationPassword')),
+      'senha-correta',
+    );
+    await tester.tap(find.text('AUTENTICAR'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Não foi possível processar a senha. Tente novamente.'),
+        findsOneWidget);
+    expect(tester.widget<TextField>(tokenFieldFinder()).obscureText, isTrue);
+
+    storageAvailable = true;
+    await tester.tap(find.text('AUTENTICAR'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(tokenFieldFinder()).obscureText, isFalse);
+  });
 }

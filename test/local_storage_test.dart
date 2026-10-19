@@ -34,6 +34,17 @@ void main() {
     expect(await LocalStorage.verifyAppPassword('senha-errada'), isFalse);
   });
 
+  test('previously stored PBKDF2 hash remains valid', () async {
+    FlutterSecureStorage.setMockInitialValues({
+      'app_password_hash':
+          r'pbkdf2_sha256$210000$AAECAwQFBgcICQoLDA0ODw==$'
+          'JluVIrLm6WlhycGFQDH7Nu2jaPBUQpF9mG99V6GTYwc=',
+    });
+
+    expect(await LocalStorage.verifyAppPassword('senha-antiga'), isTrue);
+    expect(await LocalStorage.verifyAppPassword('senha-errada'), isFalse);
+  });
+
   test('cloudflare token is stored in secure storage', () async {
     await LocalStorage.saveToken('cf-token');
 
