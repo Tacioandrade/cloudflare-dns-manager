@@ -4,8 +4,9 @@ GitHub 上的项目：[https://github.com/Tacioandrade/cloudflare-update-dns/](h
 
 本项目的所有重要变更都将记录在此文件中。
 
-## [未发布]
+## [2.1.0] - 2026-10-19
 ### 新增
+- 新增 DNS 记录操作菜单，可复制地址或值、克隆、编辑或删除记录。右键菜单会以系统语言提供相同操作。
 - 新增将新域名添加到用户可访问的某个 Cloudflare 账户的功能。
 - 待激活域名现在会显示分配的名称服务器，可逐一复制并重新请求激活检查。
 - 当令牌没有 `Memberships → Read` 权限时，添加域名页面现在会提示仅列出至少已注册一个域名的账户。
@@ -14,6 +15,7 @@ GitHub 上的项目：[https://github.com/Tacioandrade/cloudflare-update-dns/](h
 - 改进了使用本应用所需权限的文档。
 ### 修复
 - 重新整理令牌说明：现有区域的基本配置使用 Zone Edit 和 Cache Purge，而 DNS Edit 归入添加域名并管理其 DNS 记录的配置。
+- 修复 iOS/App Store 发布配置，包括应用图标和元数据。
 
 ## [2.0.11] - 2026-09-24
 ### 新增

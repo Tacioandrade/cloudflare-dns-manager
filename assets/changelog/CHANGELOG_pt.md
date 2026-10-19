@@ -4,8 +4,9 @@ Projeto no GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](http
 
 Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
-## [Não lançado]
+## [2.1.0] - 2026-10-19
 ### Adicionado
+- Adicionado menu de ações dos registros DNS para copiar endereço ou valor, clonar, editar e excluir; o botão direito oferece as mesmas opções no idioma do sistema.
 - Adicionada a opção de adicionar um novo domínio a uma das contas Cloudflare acessíveis pelo usuário.
 - Domínios pendentes agora exibem os servidores DNS atribuídos, permitem copiá-los e solicitar uma nova verificação de ativação.
 - Na tela de adição de domínio, quando o token não possui a permissão `Memberships → Read`, agora é exibido um aviso de que somente contas com pelo menos um domínio cadastrado serão listadas.
@@ -14,6 +15,7 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 - Melhorada a documentação das permissões necessárias para utilizar o aplicativo.
 ### Corrigido
 - Reorganizada a orientação sobre tokens: o perfil básico para zonas existentes usa Zone Editar e Cache Purge, enquanto DNS Editar fica no perfil que adiciona domínios e administra seus registros DNS.
+- Corrigida a configuração de publicação para iOS/App Store, incluindo ícones e metadados.
 
 ## [2.0.11] - 2026-09-24
 ### Adicionado

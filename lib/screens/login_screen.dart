@@ -113,7 +113,8 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 24),
               Text(
                 context.l10n.text('appName'),
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 48),
               if (_canCheckBiometrics) ...[
@@ -130,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: Text(
                       context.l10n.text('loginBiometric'),
-                      style: TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 16),
                     ),
                   ),
                 ),
@@ -139,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () => setState(() => _canCheckBiometrics = false),
                   child: Text(
                     context.l10n.text('usePassword'),
-                    style: TextStyle(color: Colors.grey),
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 ),
               ] else ...[
@@ -176,7 +177,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                     ),
-                    child: Text(context.l10n.text('login'), style: const TextStyle(fontSize: 16)),
+                    child: Text(context.l10n.text('login'),
+                        style: const TextStyle(fontSize: 16)),
                   ),
                 ),
               ],

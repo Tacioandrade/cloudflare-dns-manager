@@ -279,7 +279,7 @@ class _DomainsScreenState extends State<DomainsScreen> {
         if (_error != null)
           Container(
             width: double.infinity,
-            color: AppColors.error.withOpacity(0.1),
+            color: AppColors.error.withValues(alpha: 0.1),
             padding: const EdgeInsets.all(12),
             child: Text(
               context.l10n

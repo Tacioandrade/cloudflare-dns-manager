@@ -273,8 +273,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(context.l10n.text('apiToken'),
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _tokenController,
@@ -299,7 +299,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.grey[700]),
                         child: Text(context.l10n.text('test'),
-                            style: TextStyle(color: Colors.white)),
+                            style: const TextStyle(color: Colors.white)),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -309,7 +309,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary),
                         child: Text(context.l10n.text('save'),
-                            style: TextStyle(color: Colors.white)),
+                            style: const TextStyle(color: Colors.white)),
                       ),
                     ),
                   ],
@@ -318,14 +318,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Divider(),
                 const SizedBox(height: 16),
                 Text(context.l10n.text('appTheme'),
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Text(context.l10n.text('themeDescription'),
-                    style: TextStyle(color: Colors.grey)),
+                    style: const TextStyle(color: Colors.grey)),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: _themeMode,
+                  initialValue: _themeMode,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.palette),
@@ -361,7 +361,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: const TextStyle(color: Colors.grey)),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: _language,
+                  initialValue: _language,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.language),
@@ -398,7 +398,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle:
                         Text(context.l10n.text('checkForUpdatesDescription')),
                     value: _updateCheckEnabled,
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                     onChanged: _saveUpdateCheckEnabled,
                   ),
                 ],
@@ -406,11 +406,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Divider(),
                 const SizedBox(height: 16),
                 Text(context.l10n.text('dnsTypes'),
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Text(context.l10n.text('dnsTypesDescription'),
-                    style: TextStyle(color: Colors.grey)),
+                    style: const TextStyle(color: Colors.grey)),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 8.0,
@@ -419,7 +419,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     return FilterChip(
                       label: Text(type),
                       selected: _dnsTypes.contains(type),
-                      selectedColor: AppColors.primary.withOpacity(0.3),
+                      selectedColor: AppColors.primary.withValues(alpha: 0.3),
                       checkmarkColor: AppColors.primary,
                       onSelected: (selected) {
                         setState(() {
@@ -446,8 +446,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Divider(),
                 const SizedBox(height: 16),
                 Text(context.l10n.text('changePassword'),
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _currentPassController,
@@ -514,15 +514,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary),
                     child: Text(context.l10n.text('updatePassword'),
-                        style: TextStyle(color: Colors.white)),
+                        style: const TextStyle(color: Colors.white)),
                   ),
                 ),
                 const SizedBox(height: 32),
                 const Divider(),
                 const SizedBox(height: 16),
                 Text(context.l10n.text('about'),
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,

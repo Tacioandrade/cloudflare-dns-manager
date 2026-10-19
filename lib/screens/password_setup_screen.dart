@@ -71,7 +71,8 @@ class _PasswordSetupScreenState extends State<PasswordSetupScreen> {
               const SizedBox(height: 24),
               Text(
                 context.l10n.text('createPassword'),
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 48),
               TextField(
@@ -129,7 +130,7 @@ class _PasswordSetupScreenState extends State<PasswordSetupScreen> {
                   ),
                   child: Text(
                     context.l10n.text('saveAndLogin'),
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ),
               ),

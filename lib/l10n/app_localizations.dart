@@ -20,6 +20,14 @@ class AppLocalizations {
       Localizations.of<AppLocalizations>(context, AppLocalizations)!;
 
   String text(String key, {Map<String, String> values = const {}}) {
+    return textForLocale(key, locale, values: values);
+  }
+
+  static String textForLocale(
+    String key,
+    Locale locale, {
+    Map<String, String> values = const {},
+  }) {
     var value =
         (_translations[locale.languageCode] ?? _translations['en']!)[key] ??
             _translations['en']![key] ??
@@ -193,7 +201,13 @@ class AppLocalizations {
       'purgeError': 'Error purging CDN cache: {error}',
       'newRecord': 'New record',
       'editRecord': 'Edit record',
-      'copyRecord': 'Copy record',
+      'copyRecord': 'Duplicate record',
+      'recordActions': 'Record actions',
+      'copyAddress': 'Copy address',
+      'copyValue': 'Copy value',
+      'addressCopied': 'Address copied.',
+      'valueCopied': 'Value copied.',
+      'duplicateRecordAction': 'Duplicate record',
       'duplicateRecord': 'This DNS record already exists.',
       'type': 'Type',
       'nameSubdomain': 'Name (subdomain)',
@@ -377,7 +391,13 @@ class AppLocalizations {
       'purgeError': 'Erro ao limpar cache da CDN: {error}',
       'newRecord': 'Novo registro',
       'editRecord': 'Editar registro',
-      'copyRecord': 'Copiar registro',
+      'copyRecord': 'Clonar registro',
+      'recordActions': 'Ações do registro',
+      'copyAddress': 'Copiar endereço',
+      'copyValue': 'Copiar valor',
+      'addressCopied': 'Endereço copiado.',
+      'valueCopied': 'Valor copiado.',
+      'duplicateRecordAction': 'Clonar registro',
       'duplicateRecord': 'Esta entrada DNS já existe.',
       'type': 'Tipo',
       'nameSubdomain': 'Nome (subdomínio)',
@@ -562,7 +582,13 @@ class AppLocalizations {
       'purgeError': 'Erreur lors de la purge du cache CDN : {error}',
       'newRecord': 'Nouvel enregistrement',
       'editRecord': 'Modifier l’enregistrement',
-      'copyRecord': 'Copier l’enregistrement',
+      'copyRecord': 'Dupliquer l’enregistrement',
+      'recordActions': 'Actions de l’enregistrement',
+      'copyAddress': 'Copier l’adresse',
+      'copyValue': 'Copier la valeur',
+      'addressCopied': 'Adresse copiée.',
+      'valueCopied': 'Valeur copiée.',
+      'duplicateRecordAction': 'Dupliquer l’enregistrement',
       'duplicateRecord': 'Cet enregistrement DNS existe déjà.',
       'type': 'Type',
       'nameSubdomain': 'Nom (sous-domaine)',
@@ -749,7 +775,13 @@ class AppLocalizations {
       'purgeError': 'Error al limpiar caché de CDN: {error}',
       'newRecord': 'Nuevo registro',
       'editRecord': 'Editar registro',
-      'copyRecord': 'Copiar registro',
+      'copyRecord': 'Clonar registro',
+      'recordActions': 'Acciones del registro',
+      'copyAddress': 'Copiar dirección',
+      'copyValue': 'Copiar valor',
+      'addressCopied': 'Dirección copiada.',
+      'valueCopied': 'Valor copiado.',
+      'duplicateRecordAction': 'Clonar registro',
       'duplicateRecord': 'Este registro DNS ya existe.',
       'type': 'Tipo',
       'nameSubdomain': 'Nombre (subdominio)',
@@ -840,8 +872,7 @@ class AppLocalizations {
       'tokenTutorialPaste': '粘贴您的 ',
       'tokenTutorialTest': '点击“测试”进行验证。',
       'tokenTutorialSave': '点击“保存”。',
-      'tokenTutorialPermissionsIntro':
-          '请选择与您要使用的功能相对应的 API 令牌配置：',
+      'tokenTutorialPermissionsIntro': '请选择与您要使用的功能相对应的 API 令牌配置：',
       'tokenProfileExistingTitle': '仅用于管理已注册域名的 API 令牌',
       'tokenProfileAddTitle': '用于添加新域名并管理现有域名的 API 令牌',
       'tokenProfileAddDescription':
@@ -919,7 +950,13 @@ class AppLocalizations {
       'purgeError': '清除 CDN 缓存时出错：{error}',
       'newRecord': '新记录',
       'editRecord': '编辑记录',
-      'copyRecord': '复制记录',
+      'copyRecord': '克隆记录',
+      'recordActions': '记录操作',
+      'copyAddress': '复制地址',
+      'copyValue': '复制值',
+      'addressCopied': '地址已复制。',
+      'valueCopied': '值已复制。',
+      'duplicateRecordAction': '克隆记录',
       'duplicateRecord': '此 DNS 记录已存在。',
       'type': '类型',
       'nameSubdomain': '名称（子域名）',
@@ -1011,8 +1048,7 @@ class AppLocalizations {
       'tokenTutorialPaste': '次のトークンを貼り付けます：',
       'tokenTutorialTest': '「テスト」をクリックして検証します。',
       'tokenTutorialSave': '「保存」をクリックします。',
-      'tokenTutorialPermissionsIntro':
-          '使用する機能に合った API トークン構成を選択してください：',
+      'tokenTutorialPermissionsIntro': '使用する機能に合った API トークン構成を選択してください：',
       'tokenProfileExistingTitle': '登録済みドメインの管理専用 API トークン',
       'tokenProfileAddTitle': '新しいドメインの追加と既存ドメインの管理用 API トークン',
       'tokenProfileAddDescription':
@@ -1090,7 +1126,13 @@ class AppLocalizations {
       'purgeError': 'CDN キャッシュ削除エラー：{error}',
       'newRecord': '新しいレコード',
       'editRecord': 'レコードを編集',
-      'copyRecord': 'レコードをコピー',
+      'copyRecord': 'レコードを複製',
+      'recordActions': 'レコードの操作',
+      'copyAddress': 'アドレスをコピー',
+      'copyValue': '値をコピー',
+      'addressCopied': 'アドレスをコピーしました。',
+      'valueCopied': '値をコピーしました。',
+      'duplicateRecordAction': 'レコードを複製',
       'duplicateRecord': 'この DNS レコードは既に存在します。',
       'type': '種類',
       'nameSubdomain': '名前（サブドメイン）',

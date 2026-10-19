@@ -1,3 +1,5 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/constants.dart';
@@ -150,6 +152,181 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
     });
   }
 
+  void _handleRecordAction(String action, dynamic record, {Locale? locale}) {
+    switch (action) {
+      case 'copyAddress':
+        _copyRecordField(record, 'name', 'addressCopied', locale: locale);
+        break;
+      case 'copyValue':
+        _copyRecordField(record, 'content', 'valueCopied', locale: locale);
+        break;
+      case 'duplicate':
+        _showRecordDialog(record, true);
+        break;
+      case 'edit':
+        _showRecordDialog(record);
+        break;
+      case 'delete':
+        _confirmDeleteRecord(record);
+        break;
+    }
+  }
+
+  Future<void> _copyRecordField(
+    dynamic record,
+    String field,
+    String confirmationKey, {
+    Locale? locale,
+  }) async {
+    final value = record[field]?.toString().trim() ?? '';
+    if (value.isEmpty) return;
+
+    await Clipboard.setData(ClipboardData(text: value));
+    if (!mounted) return;
+
+    final message = locale == null
+        ? context.l10n.text(confirmationKey)
+        : AppLocalizations.textForLocale(confirmationKey, locale);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _showRecordContextMenu(
+    TapDownDetails details,
+    dynamic record,
+  ) async {
+    if (_isBulkSelectionMode || _isBulkDeleting) return;
+
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final localPosition = overlay.globalToLocal(details.globalPosition);
+    final position = RelativeRect.fromRect(
+      Rect.fromLTWH(localPosition.dx, localPosition.dy, 1, 1),
+      Offset.zero & overlay.size,
+    );
+    final systemLocales = PlatformDispatcher.instance.locales;
+    final systemLocale =
+        systemLocales.isEmpty ? const Locale('en') : systemLocales.first;
+    final strings =
+        (String key) => AppLocalizations.textForLocale(key, systemLocale);
+    final theme = Theme.of(context);
+
+    final action = await showMenu<String>(
+      context: context,
+      position: position,
+      color: theme.colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      items: [
+        PopupMenuItem(
+          value: 'copyAddress',
+          child: _buildContextMenuItem(
+            icon: Icons.language,
+            label: strings('copyAddress'),
+            color: theme.colorScheme.primary,
+          ),
+        ),
+        PopupMenuItem(
+          value: 'copyValue',
+          child: _buildContextMenuItem(
+            icon: Icons.content_copy,
+            label: strings('copyValue'),
+            color: theme.colorScheme.primary,
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'duplicate',
+          child: _buildContextMenuItem(
+            icon: Icons.copy_all,
+            label: strings('duplicateRecordAction'),
+            color: theme.colorScheme.primary,
+          ),
+        ),
+        PopupMenuItem(
+          value: 'edit',
+          child: _buildContextMenuItem(
+            icon: Icons.edit,
+            label: strings('editRecord'),
+            color: theme.colorScheme.primary,
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: _buildContextMenuItem(
+            icon: Icons.delete,
+            label: strings('deleteRecordAction'),
+            color: AppColors.error,
+          ),
+        ),
+      ],
+    );
+
+    if (action == null || !mounted) return;
+    _handleRecordAction(action, record, locale: systemLocale);
+  }
+
+  Widget _buildContextMenuItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: color),
+        const SizedBox(width: 12),
+        Text(label),
+      ],
+    );
+  }
+
+  List<PopupMenuEntry<String>> _recordMenuItems(BuildContext context) {
+    final l10n = context.l10n;
+    final primary = Theme.of(context).colorScheme.primary;
+    return [
+      PopupMenuItem(
+        value: 'copyAddress',
+        child: _buildContextMenuItem(
+          icon: Icons.language,
+          label: l10n.text('copyAddress'),
+          color: primary,
+        ),
+      ),
+      PopupMenuItem(
+        value: 'copyValue',
+        child: _buildContextMenuItem(
+          icon: Icons.content_copy,
+          label: l10n.text('copyValue'),
+          color: primary,
+        ),
+      ),
+      const PopupMenuDivider(),
+      PopupMenuItem(
+        value: 'duplicate',
+        child: _buildContextMenuItem(
+          icon: Icons.copy_all,
+          label: l10n.text('duplicateRecordAction'),
+          color: primary,
+        ),
+      ),
+      PopupMenuItem(
+        value: 'edit',
+        child: _buildContextMenuItem(
+          icon: Icons.edit,
+          label: l10n.text('editRecord'),
+          color: primary,
+        ),
+      ),
+      PopupMenuItem(
+        value: 'delete',
+        child: _buildContextMenuItem(
+          icon: Icons.delete,
+          label: l10n.text('deleteRecordAction'),
+          color: AppColors.error,
+        ),
+      ),
+    ];
+  }
+
   Widget _buildFilters() {
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainerLow,
@@ -183,7 +360,8 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                           return FilterChip(
                             label: Text(type),
                             selected: _selectedTypes.contains(type),
-                            selectedColor: AppColors.primary.withOpacity(0.3),
+                            selectedColor:
+                                AppColors.primary.withValues(alpha: 0.3),
                             checkmarkColor: AppColors.primary,
                             onSelected: (selected) =>
                                 _toggleTypeFilter(type, selected),
@@ -212,7 +390,8 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                             child: FilterChip(
                               label: Text(context.l10n.text('proxyEnabled')),
                               selected: _selectedProxyStates.contains(true),
-                              selectedColor: AppColors.primary.withOpacity(0.3),
+                              selectedColor:
+                                  AppColors.primary.withValues(alpha: 0.3),
                               checkmarkColor: AppColors.primary,
                               onSelected: (selected) =>
                                   _toggleProxyFilter(true, selected),
@@ -223,7 +402,8 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                             child: FilterChip(
                               label: Text(context.l10n.text('proxyDisabled')),
                               selected: _selectedProxyStates.contains(false),
-                              selectedColor: AppColors.primary.withOpacity(0.3),
+                              selectedColor:
+                                  AppColors.primary.withValues(alpha: 0.3),
                               checkmarkColor: AppColors.primary,
                               onSelected: (selected) =>
                                   _toggleProxyFilter(false, selected),
@@ -343,69 +523,62 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                 color: isSelected
                     ? Theme.of(context).colorScheme.primaryContainer
                     : null,
-                child: ListTile(
-                  leading: _isBulkSelectionMode
-                      ? Checkbox(
-                          key: ValueKey('bulk-select-$recordId'),
-                          value: isSelected,
-                          onChanged: _isBulkDeleting
-                              ? null
-                              : (selected) => _toggleRecordSelection(
-                                    record,
-                                    selected ?? false,
-                                  ),
-                        )
-                      : null,
-                  title: Text(
-                    '${record['type']} • ${record['name']}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                child: GestureDetector(
+                  onSecondaryTapDown: (details) =>
+                      _showRecordContextMenu(details, record),
+                  child: ListTile(
+                    leading: _isBulkSelectionMode
+                        ? Checkbox(
+                            key: ValueKey('bulk-select-$recordId'),
+                            value: isSelected,
+                            onChanged: _isBulkDeleting
+                                ? null
+                                : (selected) => _toggleRecordSelection(
+                                      record,
+                                      selected ?? false,
+                                    ),
+                          )
+                        : null,
+                    title: Text(
+                      '${record['type']} • ${record['name']}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(record['content']),
+                    trailing: _isBulkSelectionMode
+                        ? null
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Tooltip(
+                                message: context.l10n.text(
+                                  record['proxied']
+                                      ? 'disableProxy'
+                                      : 'enableProxy',
+                                ),
+                                child: Switch(
+                                  value: record['proxied'],
+                                  onChanged: record['proxiable']
+                                      ? (val) => _toggleProxy(record, val)
+                                      : null,
+                                  activeThumbColor: AppColors.primary,
+                                ),
+                              ),
+                              PopupMenuButton<String>(
+                                key: ValueKey('record-actions-$recordId'),
+                                tooltip: context.l10n.text('recordActions'),
+                                onSelected: (action) =>
+                                    _handleRecordAction(action, record),
+                                itemBuilder: _recordMenuItems,
+                              ),
+                            ],
+                          ),
+                    onTap: _isBulkSelectionMode && !_isBulkDeleting
+                        ? () => _toggleRecordSelection(record, !isSelected)
+                        : null,
+                    onLongPress: _isBulkDeleting
+                        ? null
+                        : () => _enterBulkSelection(record),
                   ),
-                  subtitle: Text(record['content']),
-                  trailing: _isBulkSelectionMode
-                      ? null
-                      : Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Tooltip(
-                              message: context.l10n.text(
-                                record['proxied']
-                                    ? 'disableProxy'
-                                    : 'enableProxy',
-                              ),
-                              child: Switch(
-                                value: record['proxied'],
-                                onChanged: record['proxiable']
-                                    ? (val) => _toggleProxy(record, val)
-                                    : null,
-                                activeThumbColor: AppColors.primary,
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: context.l10n.text('copyRecord'),
-                              icon: const Icon(Icons.content_copy),
-                              onPressed: () => _showRecordDialog(record, true),
-                            ),
-                            IconButton(
-                              tooltip: context.l10n.text('editRecord'),
-                              icon: const Icon(Icons.edit),
-                              onPressed: () => _showRecordDialog(record),
-                            ),
-                            IconButton(
-                              tooltip: context.l10n.text('deleteRecordAction'),
-                              icon: const Icon(
-                                Icons.delete,
-                                color: AppColors.error,
-                              ),
-                              onPressed: () => _confirmDeleteRecord(record),
-                            ),
-                          ],
-                        ),
-                  onTap: _isBulkSelectionMode && !_isBulkDeleting
-                      ? () => _toggleRecordSelection(record, !isSelected)
-                      : null,
-                  onLongPress: _isBulkDeleting
-                      ? null
-                      : () => _enterBulkSelection(record),
                 ),
               );
             },
@@ -763,7 +936,7 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         DropdownButtonFormField<String>(
-                          value: typeController.text,
+                          initialValue: typeController.text,
                           items: (_allowedTypes.contains(typeController.text)
                                   ? _allowedTypes
                                   : [..._allowedTypes, typeController.text])

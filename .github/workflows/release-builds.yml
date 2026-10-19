@@ -407,6 +407,32 @@ jobs:
             dist/cloudflare-dns-manager-windows-${{ needs.detect-version.outputs.version }}.exe
           if-no-files-found: error
 
+  validate-ios:
+    name: Validate iOS build
+    needs: detect-version
+    if: needs.detect-version.outputs.should_release == 'true'
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.38.10"
+          channel: stable
+          cache: true
+
+      - name: Validate Flutter project
+        run: |
+          flutter doctor -v
+          flutter pub get
+          flutter analyze
+          flutter test
+
+      - name: Build iOS without code signing
+        run: flutter build ios --release --no-codesign
+
   build-macos:
     name: Build macOS bundle
     needs: detect-version
@@ -459,6 +485,7 @@ jobs:
       - detect-version
       - build-linux
       - build-windows
+      - validate-ios
       - build-macos
     if: needs.detect-version.outputs.should_release == 'true'
     runs-on: ubuntu-latest

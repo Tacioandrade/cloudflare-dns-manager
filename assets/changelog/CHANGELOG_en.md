@@ -4,8 +4,9 @@ Project on GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](http
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.1.0] - 2026-10-19
 ### Added
+- Added a DNS record actions menu to copy the address or value, duplicate, edit, or delete a record. Right-click offers the same actions in the system language.
 - Added the option to add a new domain to one of the user's accessible Cloudflare accounts.
 - Pending domains now show their assigned name servers, allow copying them, and can request a new activation check.
 - The add-domain screen now warns that only accounts with at least one registered domain will be listed when the token does not have the `Memberships → Read` permission.
@@ -14,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Improved the documentation for the permissions required to use the application.
 ### Fixed
 - Reorganized the token guidance: the basic profile for existing zones uses Zone Edit and Cache Purge, while DNS Edit is part of the profile that adds domains and manages their DNS records.
+- Fixed iOS/App Store publishing configuration, including app icons and metadata.
 
 ## [2.0.11] - 2026-09-24
 ### Added
