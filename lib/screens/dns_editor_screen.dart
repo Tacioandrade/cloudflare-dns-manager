@@ -207,8 +207,8 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
     final systemLocales = PlatformDispatcher.instance.locales;
     final systemLocale =
         systemLocales.isEmpty ? const Locale('en') : systemLocales.first;
-    final strings =
-        (String key) => AppLocalizations.textForLocale(key, systemLocale);
+    String strings(String key) =>
+        AppLocalizations.textForLocale(key, systemLocale);
     final theme = Theme.of(context);
 
     final action = await showMenu<String>(
