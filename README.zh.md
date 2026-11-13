@@ -1,4 +1,4 @@
-[Português](README.md) | [English](README.en.md) | [Français](README.fr.md) | [Español](README.es.md) | [简体中文](README.zh.md) | [日本語](README.ja.md)
+[Português](README.md) | [English](README.en.md) | [Français](README.fr.md) | [Español](README.es.md) | [简体中文](README.zh.md) | [日本語](README.ja.md) | [Deutsch](README.de.md) | [العربية](README.ar.md) | [हिन्दी](README.hi.md) | [한국어](README.ko.md)
 
 # Cloudflare DNS Manager
 
@@ -12,7 +12,7 @@
 - 关闭并重新打开应用后自动注销。
 - 可配置的域名列表和 DNS 记录编辑器。
 - Cloudflare 代理开关、CDN 缓存清除和 API 令牌验证。
-- 浅色、深色或系统主题；支持葡萄牙语、英语、法语、西班牙语、简体中文和日语。
+- 浅色、深色或系统主题；支持葡萄牙语、英语、法语、西班牙语、简体中文、日语、德语、阿拉伯语、印地语和韩语。
 - 应用内本地化版本历史。
 
 ## 访问与安全

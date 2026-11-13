@@ -1,4 +1,4 @@
-[Português](README.md) | [English](README.en.md) | [Français](README.fr.md) | [Español](README.es.md) | [简体中文](README.zh.md) | [日本語](README.ja.md)
+[Português](README.md) | [English](README.en.md) | [Français](README.fr.md) | [Español](README.es.md) | [简体中文](README.zh.md) | [日本語](README.ja.md) | [Deutsch](README.de.md) | [العربية](README.ar.md) | [हिन्दी](README.hi.md) | [한국어](README.ko.md)
 
 # Cloudflare DNS Manager
 
@@ -23,7 +23,7 @@ Este README contem as informacoes compartilhadas entre as plataformas. Para coma
 - Limpeza de cache CDN da zona selecionada.
 - Configuracao e validacao do Cloudflare API Token.
 - Tema claro, escuro ou automatico pelo sistema.
-- Interface em português, inglês, francês, espanhol, chinês simplificado e japonês.
+- Interface em português, inglês, francês, espanhol, chinês simplificado, japonês, alemão, árabe, hindi e coreano.
 - Visualizacao do changelog dentro do aplicativo.
 
 ## Acesso

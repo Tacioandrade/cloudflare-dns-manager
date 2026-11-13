@@ -404,6 +404,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const DropdownMenuItem(value: 'es', child: Text('Español')),
                     const DropdownMenuItem(value: 'zh', child: Text('简体中文')),
                     const DropdownMenuItem(value: 'ja', child: Text('日本語')),
+                    const DropdownMenuItem(value: 'de', child: Text('Deutsch')),
+                    const DropdownMenuItem(value: 'ar', child: Text('العربية')),
+                    const DropdownMenuItem(value: 'hi', child: Text('हिन्दी')),
+                    const DropdownMenuItem(value: 'ko', child: Text('한국어')),
                   ],
                   onChanged: (value) {
                     if (value != null) _saveLanguage(value);

@@ -1,4 +1,4 @@
-[Português](README.md) | [English](README.en.md) | [Français](README.fr.md) | [Español](README.es.md) | [简体中文](README.zh.md) | [日本語](README.ja.md)
+[Português](README.md) | [English](README.en.md) | [Français](README.fr.md) | [Español](README.es.md) | [简体中文](README.zh.md) | [日本語](README.ja.md) | [Deutsch](README.de.md) | [العربية](README.ar.md) | [हिन्दी](README.hi.md) | [한국어](README.ko.md)
 
 # Cloudflare DNS Manager
 
@@ -13,7 +13,7 @@ This README contains information shared by all platforms. For build commands, te
 - Domain listing with active, pending, and inactive statuses.
 - Configurable DNS record editor, real-time Cloudflare proxy toggle, and CDN cache purge.
 - Cloudflare API token configuration and validation.
-- Light, dark, or system theme; Portuguese, English, French, Spanish, Simplified Chinese, and Japanese UI.
+- Light, dark, or system theme; Portuguese, English, French, Spanish, Simplified Chinese, Japanese, German, Arabic, Hindi, and Korean UI.
 - Localized in-app version history.
 
 ## Access and security

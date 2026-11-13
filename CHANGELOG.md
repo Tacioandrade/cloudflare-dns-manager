@@ -4,6 +4,10 @@ Projeto no GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](http
 
 Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
+## Não publicado
+### Adicionado
+- Adicionado suporte a alemão, árabe, hindi e coreano na interface, na seleção automática e manual de idioma, nos READMEs e no histórico de versões exibido no aplicativo.
+
 ## [2.1.0] - 2026-10-19
 ### Adicionado
 - Adicionado menu de ações dos registros DNS para copiar endereço ou valor, clonar, editar e excluir; o botão direito oferece as mesmas opções no idioma do sistema.

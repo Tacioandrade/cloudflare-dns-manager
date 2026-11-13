@@ -1,4 +1,4 @@
-[Português](README.md) | [English](README.en.md) | [Français](README.fr.md) | [Español](README.es.md) | [简体中文](README.zh.md) | [日本語](README.ja.md)
+[Português](README.md) | [English](README.en.md) | [Français](README.fr.md) | [Español](README.es.md) | [简体中文](README.zh.md) | [日本語](README.ja.md) | [Deutsch](README.de.md) | [العربية](README.ar.md) | [हिन्दी](README.hi.md) | [한국어](README.ko.md)
 
 # Cloudflare DNS Manager
 
@@ -12,7 +12,7 @@ Cloudflare API を通じて DNS レコードを管理する Flutter アプリケ
 - アプリを閉じて再度開いたときの自動ログアウト。
 - 設定可能なドメイン一覧と DNS レコードエディター。
 - Cloudflare プロキシ切り替え、CDN キャッシュ削除、API トークン検証。
-- ライト、ダーク、システムテーマ。ポルトガル語、英語、フランス語、スペイン語、簡体字中国語、日本語に対応。
+- ライト、ダーク、システムテーマ。ポルトガル語、英語、フランス語、スペイン語、簡体字中国語、日本語、ドイツ語、アラビア語、ヒンディー語、韓国語に対応。
 - アプリ内のローカライズされたバージョン履歴。
 
 ## アクセスとセキュリティ

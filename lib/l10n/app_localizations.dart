@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'extra_translations.dart';
+import 'korean_translations.dart';
 
 class AppLocalizations {
   AppLocalizations(this.locale);
@@ -11,6 +13,10 @@ class AppLocalizations {
     Locale('es'),
     Locale('zh'),
     Locale('ja'),
+    Locale('de'),
+    Locale('ar'),
+    Locale('hi'),
+    Locale('ko'),
   ];
 
   static const LocalizationsDelegate<AppLocalizations> delegate =
@@ -38,6 +44,8 @@ class AppLocalizations {
   }
 
   static const _translations = <String, Map<String, String>>{
+    ...extraTranslations,
+    ...koreanTranslations,
     'en': {
       'updates': 'Updates',
       'checkForUpdates': 'Check for updates',
@@ -1147,8 +1155,7 @@ class AppLocalizations {
       'changelogLoadError': '変更履歴を読み込めません。\n詳細：{error}',
       'unableOpenLink': 'リンクを開けません。',
       'credentialsInvalid': '認証情報が無効です！',
-      'passwordOperationFailed':
-          'パスワードを処理できませんでした。もう一度お試しください。',
+      'passwordOperationFailed': 'パスワードを処理できませんでした。もう一度お試しください。',
       'biometricReason': 'DNS ドメインを管理するために認証してください',
       'loginBiometric': '生体認証でログイン',
       'usePassword': '代わりにパスワードを使用',

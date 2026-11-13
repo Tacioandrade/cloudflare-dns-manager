@@ -1,4 +1,4 @@
-[Português](README.md) | [English](README.en.md) | [Français](README.fr.md) | [Español](README.es.md) | [简体中文](README.zh.md) | [日本語](README.ja.md)
+[Português](README.md) | [English](README.en.md) | [Français](README.fr.md) | [Español](README.es.md) | [简体中文](README.zh.md) | [日本語](README.ja.md) | [Deutsch](README.de.md) | [العربية](README.ar.md) | [हिन्दी](README.hi.md) | [한국어](README.ko.md)
 
 # Cloudflare DNS Manager
 
@@ -12,7 +12,7 @@ Ce README contient les informations communes. Consultez les guides [Android](REA
 - Déconnexion automatique après fermeture et réouverture de l’application.
 - Liste des domaines et éditeur d’enregistrements DNS configurables.
 - Bascule du proxy Cloudflare, purge du cache CDN et validation du jeton API.
-- Thème clair, sombre ou système ; interface en portugais, anglais, français, espagnol, chinois simplifié et japonais.
+- Thème clair, sombre ou système ; interface en portugais, anglais, français, espagnol, chinois simplifié, japonais, allemand, arabe, hindi et coréen.
 - Historique des versions localisé dans l’application.
 
 ## Accès et sécurité

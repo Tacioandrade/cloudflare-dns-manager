@@ -6,7 +6,18 @@ class AppLanguageController {
 
   static Locale? fromStorageValue(String value) {
     if (value == systemValue) return null;
-    const supportedCodes = {'pt', 'en', 'fr', 'es', 'zh', 'ja'};
+    const supportedCodes = {
+      'pt',
+      'en',
+      'fr',
+      'es',
+      'zh',
+      'ja',
+      'de',
+      'ar',
+      'hi',
+      'ko'
+    };
     return supportedCodes.contains(value) ? Locale(value) : null;
   }
 }
