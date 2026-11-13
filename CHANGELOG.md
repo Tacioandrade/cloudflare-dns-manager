@@ -7,6 +7,8 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 ## Não publicado
 ### Adicionado
 - Adicionado suporte a alemão, árabe, hindi e coreano na interface, na seleção automática e manual de idioma, nos READMEs e no histórico de versões exibido no aplicativo.
+### Corrigido
+- Corrigidas as entradas DNS MX e SRV no editor, com os campos adicionais exigidos para criar e editar esses registros.
 
 ## [2.1.0] - 2026-10-19
 ### Adicionado

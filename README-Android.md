@@ -62,6 +62,7 @@ Arquivos de keystore e `android/key.properties` devem permanecer fora do Git.
 - Versao minima: Android 7.0 (API 24).
 - Nivel desejado da API: Android 16 (API 36).
 - Flutter usado no build Android: 3.38.10.
+- Android Gradle Plugin: 8.11.1; Gradle Wrapper: 8.14. O Gradle 9.6 ou superior não é compatível com o AGP 8.x usado pelo projeto.
 - Artefatos gerados: APK e Android App Bundle (AAB).
 - Docker dedicado: `Docker/Android/Dockerfile`.
 - Compose dedicado: `Docker/Android/docker-compose.yml`.
