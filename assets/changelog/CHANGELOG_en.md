@@ -4,6 +4,13 @@ Project on GitHub: [https://github.com/Tacioandrade/cloudflare-update-dns/](http
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2026-11-13
+### Added
+- Added German, Arabic, Hindi, and Korean support in the interface, automatic and manual language selection, the READMEs, and the in-app version history.
+### Fixed
+- Fixed the MX and SRV DNS record types in the editor, adding the extra fields required to create and edit these records.
+- Fixed the TXT record to automatically wrap unquoted content in double quotes when creating or editing, matching the Cloudflare web dashboard's behavior.
+
 ## [2.1.0] - 2026-10-19
 ### Added
 - Added a DNS record actions menu to copy the address or value, duplicate, edit, or delete a record. Right-click offers the same actions in the system language.
