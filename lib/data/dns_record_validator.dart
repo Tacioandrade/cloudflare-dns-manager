@@ -44,6 +44,18 @@ class DnsRecordValidator {
     }
   }
 
+  /// Wraps TXT content in double quotes, mirroring what the Cloudflare
+  /// dashboard does automatically for new records. Content that already
+  /// contains a quote is left untouched, since the user is presumably
+  /// managing quoting themselves (e.g. multiple quoted strings).
+  static String normalizeTxtContent(String content) {
+    final trimmed = content.trim();
+    if (trimmed.isEmpty || trimmed.contains('"')) {
+      return trimmed;
+    }
+    return '"$trimmed"';
+  }
+
   /// Validates a required uint16 field (0-65535) shared by MX priority and
   /// SRV priority/weight/port.
   static String? validateUint16Field({

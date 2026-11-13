@@ -130,6 +130,29 @@ void main() {
       );
     });
 
+    test('wraps unquoted TXT content in double quotes', () {
+      expect(
+        DnsRecordValidator.normalizeTxtContent(
+            'v=spf1 include:example.com ~all'),
+        '"v=spf1 include:example.com ~all"',
+      );
+      expect(
+        DnsRecordValidator.normalizeTxtContent('  unquoted value  '),
+        '"unquoted value"',
+      );
+    });
+
+    test('leaves already-quoted TXT content untouched', () {
+      expect(
+        DnsRecordValidator.normalizeTxtContent('"already quoted"'),
+        '"already quoted"',
+      );
+      expect(
+        DnsRecordValidator.normalizeTxtContent('"first" "second"'),
+        '"first" "second"',
+      );
+    });
+
     test('validates MX and SRV uint16 fields (priority/weight/port)', () {
       expect(
         DnsRecordValidator.validateUint16Field(

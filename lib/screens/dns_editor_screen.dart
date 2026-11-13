@@ -1011,8 +1011,12 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
           finalName = '$finalName.${widget.zoneName}';
         }
 
+        final finalContent = selectedType == 'TXT'
+            ? DnsRecordValidator.normalizeTxtContent(content)
+            : content;
+
         data['name'] = finalName;
-        data['content'] = content;
+        data['content'] = finalContent;
         if (selectedType == 'MX') {
           data['priority'] = int.parse(priorityController.text.trim());
         }
@@ -1025,7 +1029,7 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
               records: _records,
               type: selectedType,
               name: finalName,
-              content: content,
+              content: finalContent,
             )) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
