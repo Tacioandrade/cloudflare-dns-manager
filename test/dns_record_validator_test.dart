@@ -130,33 +130,75 @@ void main() {
       );
     });
 
-    test('validates SRV record content', () {
+    test('validates MX and SRV uint16 fields (priority/weight/port)', () {
       expect(
-        DnsRecordValidator.validateContent(
-          type: 'SRV',
-          content: '10 20 443 service.example',
+        DnsRecordValidator.validateUint16Field(
+          fieldLabel: 'Priority',
+          value: '10',
         ),
         isNull,
       );
       expect(
-        DnsRecordValidator.validateContent(
-          type: 'SRV',
-          content: '10 20 443 _service.example',
-        ),
-        isNull,
-      );
-      expect(
-        DnsRecordValidator.validateContent(
-          type: 'SRV',
-          content: '10 20 70000 service.example',
+        DnsRecordValidator.validateUint16Field(
+          fieldLabel: 'Priority',
+          value: '70000',
         ),
         isNotNull,
       );
       expect(
-        DnsRecordValidator.validateContent(
-          type: 'SRV',
-          content: 'service.example',
+        DnsRecordValidator.validateUint16Field(
+          fieldLabel: 'Port',
+          value: '-1',
         ),
+        isNotNull,
+      );
+      expect(
+        DnsRecordValidator.validateUint16Field(
+          fieldLabel: 'Weight',
+          value: 'abc',
+        ),
+        isNotNull,
+      );
+    });
+
+    test('validates SRV service/protocol labels', () {
+      expect(
+        DnsRecordValidator.validateSrvLabel(
+          fieldLabel: 'Service',
+          value: '_sip',
+        ),
+        isNull,
+      );
+      expect(
+        DnsRecordValidator.validateSrvLabel(
+          fieldLabel: 'Service',
+          value: 'sip',
+        ),
+        isNull,
+      );
+      expect(
+        DnsRecordValidator.validateSrvLabel(
+          fieldLabel: 'Service',
+          value: '',
+        ),
+        isNotNull,
+      );
+      expect(
+        DnsRecordValidator.validateSrvLabel(
+          fieldLabel: 'Protocol',
+          value: '_tcp.example',
+        ),
+        isNotNull,
+      );
+    });
+
+    test('validates SRV target as a DNS name', () {
+      expect(
+        DnsRecordValidator.validateSrvTarget('service.example'),
+        isNull,
+      );
+      expect(
+        DnsRecordValidator.validateSrvTarget('not a domain'),
         isNotNull,
       );
     });

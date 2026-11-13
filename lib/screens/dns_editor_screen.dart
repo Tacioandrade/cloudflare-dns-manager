@@ -271,10 +271,11 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
     required Color color,
   }) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, color: color),
         const SizedBox(width: 12),
-        Text(label),
+        Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
       ],
     );
   }
@@ -822,76 +823,218 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
   }
 
   void _showRecordDialog([dynamic record, bool isCopy = false]) {
+    final recordType = record != null
+        ? '${record['type']}'.trim().toUpperCase()
+        : null;
+
     String initialName = '';
+    String initialService = '_sip';
+    String initialProto = '_tcp';
     if (record != null) {
-      String fullName = record['name'];
+      final String fullName = record['name'];
+      String strippedName;
       if (fullName == widget.zoneName) {
-        initialName = '@';
+        strippedName = '';
       } else if (fullName.endsWith('.${widget.zoneName}')) {
-        initialName =
+        strippedName =
             fullName.substring(0, fullName.length - widget.zoneName.length - 1);
       } else {
-        initialName = fullName;
+        strippedName = fullName;
+      }
+
+      if (recordType == 'SRV') {
+        final labels = strippedName.split('.');
+        if (labels.isNotEmpty && labels[0].isNotEmpty) {
+          initialService = labels[0];
+        }
+        if (labels.length > 1) {
+          initialProto = labels[1];
+        }
+        initialName = labels.length > 2 ? labels.sublist(2).join('.') : '@';
+      } else {
+        initialName = strippedName.isEmpty ? '@' : strippedName;
+      }
+    }
+
+    Map<String, dynamic>? srvData;
+    if (record != null && record['data'] is Map) {
+      srvData = Map<String, dynamic>.from(record['data'] as Map);
+    }
+    String initialPriority = '10';
+    String initialWeight = '0';
+    String initialPort = '';
+    String initialTarget = '';
+    if (recordType == 'MX') {
+      initialPriority = '${record?['priority'] ?? 10}';
+    } else if (recordType == 'SRV') {
+      if (srvData != null) {
+        initialPriority = '${srvData['priority'] ?? record?['priority'] ?? 10}';
+        initialWeight = '${srvData['weight'] ?? 0}';
+        initialPort = '${srvData['port'] ?? ''}';
+        initialTarget = '${srvData['target'] ?? ''}';
+      } else {
+        initialPriority = '${record?['priority'] ?? 10}';
+        final legacyParts =
+            '${record?['content'] ?? ''}'.trim().split(RegExp(r'\s+'));
+        if (legacyParts.length == 3) {
+          initialWeight = legacyParts[0];
+          initialPort = legacyParts[1];
+          initialTarget = legacyParts[2];
+        }
       }
     }
 
     final typeController =
         TextEditingController(text: record != null ? record['type'] : 'A');
     final nameController = TextEditingController(text: initialName);
-    final contentController =
-        TextEditingController(text: record != null ? record['content'] : '');
+    final contentController = TextEditingController(
+      text: record != null && recordType != 'SRV' ? record['content'] : '',
+    );
+    final serviceController = TextEditingController(text: initialService);
+    final protoController = TextEditingController(text: initialProto);
+    final priorityController = TextEditingController(text: initialPriority);
+    final weightController = TextEditingController(text: initialWeight);
+    final portController = TextEditingController(text: initialPort);
+    final targetController = TextEditingController(text: initialTarget);
     bool isProxied = record != null
         ? record['proxied'] == true
         : DnsRecordValidator.isProxiableType(typeController.text);
 
     Future<void> onSave() async {
       final selectedType = typeController.text.trim().toUpperCase();
-      final content = contentController.text.trim();
-      final validationError = DnsRecordValidator.validateContent(
-        type: selectedType,
-        content: content,
-      );
+      final data = <String, dynamic>{'type': selectedType};
 
-      if (validationError != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(validationError),
-            backgroundColor: AppColors.error,
-          ),
+      if (selectedType == 'SRV') {
+        final error = DnsRecordValidator.validateSrvLabel(
+              fieldLabel: context.l10n.text('srvService'),
+              value: serviceController.text,
+            ) ??
+            DnsRecordValidator.validateSrvLabel(
+              fieldLabel: context.l10n.text('srvProtocol'),
+              value: protoController.text,
+            ) ??
+            DnsRecordValidator.validateUint16Field(
+              fieldLabel: context.l10n.text('priority'),
+              value: priorityController.text,
+            ) ??
+            DnsRecordValidator.validateUint16Field(
+              fieldLabel: context.l10n.text('weight'),
+              value: weightController.text,
+            ) ??
+            DnsRecordValidator.validateUint16Field(
+              fieldLabel: context.l10n.text('port'),
+              value: portController.text,
+            ) ??
+            DnsRecordValidator.validateSrvTarget(targetController.text);
+
+        if (error != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error), backgroundColor: AppColors.error),
+          );
+          return;
+        }
+
+        var service = serviceController.text.trim();
+        if (!service.startsWith('_')) service = '_$service';
+        var proto = protoController.text.trim();
+        if (!proto.startsWith('_')) proto = '_$proto';
+
+        final subdomain = nameController.text.trim();
+        final subdomainPrefix =
+            (subdomain.isEmpty || subdomain == '@') ? '' : '$subdomain.';
+        final finalName = '$service.$proto.$subdomainPrefix${widget.zoneName}';
+
+        final priority = int.parse(priorityController.text.trim());
+        final weight = int.parse(weightController.text.trim());
+        final port = int.parse(portController.text.trim());
+        final target = targetController.text.trim();
+
+        data['name'] = finalName;
+        data['data'] = {
+          'priority': priority,
+          'weight': weight,
+          'port': port,
+          'target': target,
+        };
+
+        if (isCopy &&
+            DnsRecordValidator.isDuplicate(
+              records: _records,
+              type: selectedType,
+              name: finalName,
+              content: '$weight $port $target',
+            )) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.text('duplicateRecord')),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          return;
+        }
+      } else {
+        final content = contentController.text.trim();
+        final validationError = DnsRecordValidator.validateContent(
+          type: selectedType,
+          content: content,
         );
-        return;
-      }
+        if (validationError != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(validationError),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          return;
+        }
 
-      String finalName = nameController.text.trim();
-      if (finalName == '@' || finalName.isEmpty) {
-        finalName = widget.zoneName;
-      } else if (!finalName.endsWith('.${widget.zoneName}')) {
-        finalName = '$finalName.${widget.zoneName}';
-      }
+        if (selectedType == 'MX') {
+          final priorityError = DnsRecordValidator.validateUint16Field(
+            fieldLabel: context.l10n.text('priority'),
+            value: priorityController.text,
+          );
+          if (priorityError != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(priorityError),
+                backgroundColor: AppColors.error,
+              ),
+            );
+            return;
+          }
+        }
 
-      final data = <String, dynamic>{
-        'type': selectedType,
-        'name': finalName,
-        'content': content,
-      };
-      if (DnsRecordValidator.isProxiableType(selectedType)) {
-        data['proxied'] = isProxied;
-      }
+        String finalName = nameController.text.trim();
+        if (finalName == '@' || finalName.isEmpty) {
+          finalName = widget.zoneName;
+        } else if (!finalName.endsWith('.${widget.zoneName}')) {
+          finalName = '$finalName.${widget.zoneName}';
+        }
 
-      if (isCopy &&
-          DnsRecordValidator.isDuplicate(
-            records: _records,
-            type: selectedType,
-            name: finalName,
-            content: content,
-          )) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.text('duplicateRecord')),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        return;
+        data['name'] = finalName;
+        data['content'] = content;
+        if (selectedType == 'MX') {
+          data['priority'] = int.parse(priorityController.text.trim());
+        }
+        if (DnsRecordValidator.isProxiableType(selectedType)) {
+          data['proxied'] = isProxied;
+        }
+
+        if (isCopy &&
+            DnsRecordValidator.isDuplicate(
+              records: _records,
+              type: selectedType,
+              name: finalName,
+              content: content,
+            )) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.text('duplicateRecord')),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          return;
+        }
       }
 
       try {
@@ -917,6 +1060,8 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
+            final currentType = typeController.text.trim().toUpperCase();
+            final isSrv = currentType == 'SRV';
             return CallbackShortcuts(
               bindings: {
                 const SingleActivator(LogicalKeyboardKey.escape): () {
@@ -957,28 +1102,96 @@ class _DnsEditorScreenState extends State<DnsEditorScreen> {
                           decoration: InputDecoration(
                               labelText: context.l10n.text('type')),
                         ),
-                        TextField(
-                          controller: nameController,
-                          onSubmitted: (_) => onSave(),
-                          decoration: InputDecoration(
-                            labelText: context.l10n.text('nameSubdomain'),
-                            hintText: '@ ou www',
-                            suffixText: '.${widget.zoneName}',
-                          ),
-                        ),
-                        TextField(
-                            controller: contentController,
+                        if (isSrv) ...[
+                          TextField(
+                            controller: serviceController,
                             onSubmitted: (_) => onSave(),
                             decoration: InputDecoration(
-                                labelText: context.l10n.text('content'))),
-                        if (DnsRecordValidator.isProxiableType(
-                            typeController.text))
-                          SwitchListTile(
-                            title: Text(context.l10n.text('proxied')),
-                            value: isProxied,
-                            onChanged: (val) =>
-                                setStateDialog(() => isProxied = val),
+                              labelText: context.l10n.text('srvService'),
+                            ),
                           ),
+                          DropdownButtonFormField<String>(
+                            initialValue: protoController.text,
+                            items: (['_tcp', '_udp', '_tls']
+                                    .contains(protoController.text)
+                                ? ['_tcp', '_udp', '_tls']
+                                : ['_tcp', '_udp', '_tls', protoController.text])
+                                .map((proto) {
+                              return DropdownMenuItem(
+                                  value: proto, child: Text(proto));
+                            }).toList(),
+                            onChanged: (val) => setStateDialog(
+                                () => protoController.text = val!),
+                            decoration: InputDecoration(
+                                labelText: context.l10n.text('srvProtocol')),
+                          ),
+                          TextField(
+                            controller: nameController,
+                            onSubmitted: (_) => onSave(),
+                            decoration: InputDecoration(
+                              labelText: context.l10n.text('nameSubdomain'),
+                              hintText: '@ ou www',
+                              suffixText: '.${widget.zoneName}',
+                            ),
+                          ),
+                          TextField(
+                            controller: priorityController,
+                            keyboardType: TextInputType.number,
+                            onSubmitted: (_) => onSave(),
+                            decoration: InputDecoration(
+                                labelText: context.l10n.text('priority')),
+                          ),
+                          TextField(
+                            controller: weightController,
+                            keyboardType: TextInputType.number,
+                            onSubmitted: (_) => onSave(),
+                            decoration: InputDecoration(
+                                labelText: context.l10n.text('weight')),
+                          ),
+                          TextField(
+                            controller: portController,
+                            keyboardType: TextInputType.number,
+                            onSubmitted: (_) => onSave(),
+                            decoration: InputDecoration(
+                                labelText: context.l10n.text('port')),
+                          ),
+                          TextField(
+                            controller: targetController,
+                            onSubmitted: (_) => onSave(),
+                            decoration: InputDecoration(
+                                labelText: context.l10n.text('srvTarget')),
+                          ),
+                        ] else ...[
+                          TextField(
+                            controller: nameController,
+                            onSubmitted: (_) => onSave(),
+                            decoration: InputDecoration(
+                              labelText: context.l10n.text('nameSubdomain'),
+                              hintText: '@ ou www',
+                              suffixText: '.${widget.zoneName}',
+                            ),
+                          ),
+                          TextField(
+                              controller: contentController,
+                              onSubmitted: (_) => onSave(),
+                              decoration: InputDecoration(
+                                  labelText: context.l10n.text('content'))),
+                          if (currentType == 'MX')
+                            TextField(
+                              controller: priorityController,
+                              keyboardType: TextInputType.number,
+                              onSubmitted: (_) => onSave(),
+                              decoration: InputDecoration(
+                                  labelText: context.l10n.text('priority')),
+                            ),
+                          if (DnsRecordValidator.isProxiableType(currentType))
+                            SwitchListTile(
+                              title: Text(context.l10n.text('proxied')),
+                              value: isProxied,
+                              onChanged: (val) =>
+                                  setStateDialog(() => isProxied = val),
+                            ),
+                        ],
                       ],
                     ),
                   ),

@@ -39,13 +39,39 @@ class DnsRecordValidator {
             : 'Registro NS exige um domínio válido.';
       case 'TXT':
         return null;
-      case 'SRV':
-        return _isValidSrvContent(normalizedContent)
-            ? null
-            : 'Registro SRV exige o formato: prioridade peso porta domínio.';
       default:
         return null;
     }
+  }
+
+  /// Validates a required uint16 field (0-65535) shared by MX priority and
+  /// SRV priority/weight/port.
+  static String? validateUint16Field({
+    required String fieldLabel,
+    required String value,
+  }) {
+    return _isValidUint16(value.trim())
+        ? null
+        : '$fieldLabel deve ser um número entre 0 e 65535.';
+  }
+
+  /// Validates a SRV service or protocol label (e.g. "_sip", "_tcp").
+  /// The leading underscore is optional here; it is normalized before
+  /// being sent to the API.
+  static String? validateSrvLabel({
+    required String fieldLabel,
+    required String value,
+  }) {
+    return _isValidSrvLabel(value)
+        ? null
+        : '$fieldLabel inválido. Use letras, números e hífen (ex.: sip, tcp).';
+  }
+
+  /// Validates the SRV target, which must be a valid hostname.
+  static String? validateSrvTarget(String value) {
+    return _isValidDomainName(value.trim())
+        ? null
+        : 'Registro SRV exige um domínio de destino válido.';
   }
 
   static bool isDuplicate({
@@ -86,9 +112,10 @@ class DnsRecordValidator {
     }
     if (type == 'SRV') {
       final parts = normalized.split(RegExp(r'\s+'));
-      if (parts.length == 4) {
-        return '${parts[0]} ${parts[1]} ${parts[2]} '
-            '${_normalizeDnsName(parts[3])}';
+      // Cloudflare stores SRV content as "weight port target"; priority is
+      // tracked separately in the top-level priority/data fields.
+      if (parts.length == 3) {
+        return '${parts[0]} ${parts[1]} ${_normalizeDnsName(parts[2])}';
       }
       return normalized.toLowerCase();
     }
@@ -146,14 +173,12 @@ class DnsRecordValidator {
     return true;
   }
 
-  static bool _isValidSrvContent(String value) {
-    final parts = value.split(RegExp(r'\s+'));
-    if (parts.length != 4) return false;
-
-    return _isValidUint16(parts[0]) &&
-        _isValidUint16(parts[1]) &&
-        _isValidUint16(parts[2]) &&
-        _isValidDomainName(parts[3]);
+  static bool _isValidSrvLabel(String value) {
+    final normalized = value.trim();
+    final label =
+        normalized.startsWith('_') ? normalized.substring(1) : normalized;
+    return label.isNotEmpty &&
+        RegExp(r'^[a-zA-Z0-9-]{1,63}$').hasMatch(label);
   }
 
   static bool _isValidUint16(String value) {
